@@ -42,7 +42,7 @@ public class MigrationMatrix {
 			new MouseInputAdapter() {
 			  public void mouseClicked(MouseEvent ME) {
 				 if (ME.getClickCount() == 1) {
-//					reserviert für manuelles Setzen der Felder
+					setElement();
 				 }
 			  }
 		   }
@@ -88,6 +88,62 @@ public class MigrationMatrix {
 	} // end getTable
 
 
+	
+	private void setElement() {
+		
+		int row = Matrix.getSelectedRow();
+		int col = Matrix.getSelectedColumn();
+		if (((Vector)Positions.elementAt(row)).elementAt(col).toString().equals("B") &&
+			Mig.getSelection().equals("Black")) {
+			((Vector)Positions.elementAt(row)).setElementAt("", col);
+			Matrix.setValueAt("", row, col);
+		}
+		else if	(((Vector)Positions.elementAt(row)).elementAt(col).toString().equals("W") &&
+			Mig.getSelection().equals("White")) {
+			((Vector)Positions.elementAt(row)).setElementAt("", col);
+			Matrix.setValueAt("", row, col);
+		}
+		else if	(((Vector)Positions.elementAt(row)).elementAt(col).toString().equals("R") &&
+			Mig.getSelection().equals("Red")) {
+			((Vector)Positions.elementAt(row)).setElementAt("", col);
+			Matrix.setValueAt("", row, col);
+		}
+		else if	(((Vector)Positions.elementAt(row)).elementAt(col).toString().equals("Y") &&
+			Mig.getSelection().equals("Yellow")) {
+			((Vector)Positions.elementAt(row)).setElementAt("", col);
+			Matrix.setValueAt("", row, col);
+		}
+		else {
+			int size = Positions.size();
+			if (Mig.getSumOfColoredFields() < size * size * 2 / 3) {
+				if (Mig.getSelection().equals("Black")) {
+					((Vector)Positions.elementAt(row)).setElementAt("B", col);
+				}
+				else if (Mig.getSelection().equals("White")) {
+					((Vector)Positions.elementAt(row)).setElementAt("W", col);
+				}
+				else if (Mig.getSelection().equals("Red")) {
+					((Vector)Positions.elementAt(row)).setElementAt("R", col);
+				}
+				else if (Mig.getSelection().equals("Yellow")) {
+					((Vector)Positions.elementAt(row)).setElementAt("Y", col);
+				}
+				Matrix.setValueAt("\u25cf", row, col);
+			}
+			else {
+				// Der TableCellRenderer muss gestoppt werden damit die Fehlermeldung lesbar wird
+				Mig.getScrollPanel().getViewport().removeAll();
+				Mig.messageHandling("MaxExceeded", String.valueOf(size * size));
+				Mig.getScrollPanel().getViewport().add(Matrix);
+				Mig.getScrollPanel().validate();
+			}
+		}
+
+			
+		
+	} // end setElement
+	
+	
 	
 	/**
 	 * Definiert das Aussehen der Spaltenköpfe.
@@ -221,7 +277,7 @@ public class MigrationMatrix {
 			Component RComponent = super.getTableCellRendererComponent(RTable, Value, isSelected, hasFocus, row, col);
 			String FontName = getFont().getFontName();
 			setFont(new Font(FontName, Font.BOLD, 20));
-			setBackground(new Color(180,180,180));
+			setBackground(Color.LIGHT_GRAY);
 			
 			if (((Vector)Positions.elementAt(row)).elementAt(col).toString().equals("B")) {
 				setForeground(Color.BLACK);

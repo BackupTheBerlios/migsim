@@ -1,7 +1,6 @@
 import java.awt.*;
 import java.awt.event.*;
 import java.util.*;
-
 import javax.swing.*;
 
 
@@ -33,7 +32,10 @@ public class Migration implements ActionListener {
 	private JLabel Headline;
 	private JScrollPane ScrollPanel;
 	private JPanel PagePanel;
+	private JPanel SouthPanel;
+	private JPanel South;
 	private JTextField CurrentTField;
+	private ButtonGroup RadioButtonGroup;
 	private GridBagLayout Layout;
 	private	GridBagConstraints GBC;
 	private Vector Settings;
@@ -92,7 +94,7 @@ public class Migration implements ActionListener {
 		GBC.gridx = 0;
 		GBC.insets = getInsets(row, "Button");
 		
-		Help = new JButton("Hilfe");		// erzeugt den Help-Button
+		Help = new JButton("Hilfe");	// erzeugt den Help-Button
 		Help.setPreferredSize(new Dimension(90,25));
 		Help.addActionListener(this);
 		Help.setEnabled(false);
@@ -104,7 +106,7 @@ public class Migration implements ActionListener {
 		Exit.addActionListener(this);
 		Exit.setEnabled(false);
 		GBC.gridy = row++;
-		GBC.insets = getInsets(row, "Buttongroup");
+		GBC.insets = getInsets(row, "ButtonBlock");
 		Layout.setConstraints(Exit, GBC);
 				
 		Reset = new JButton("Reset");	// erzeugt den Reset-Button
@@ -120,7 +122,7 @@ public class Migration implements ActionListener {
 		Next.addActionListener(this);
 		Next.setEnabled(false);
 		GBC.gridy = row++;
-		GBC.insets = getInsets(row, "Buttongroup");
+		GBC.insets = getInsets(row, "ButtonBlock");
 		Layout.setConstraints(Next, GBC);
 
 		Back = new JButton("Zurück");	// erzeugt den Back-Button
@@ -131,7 +133,6 @@ public class Migration implements ActionListener {
 		GBC.insets = getInsets(row, "Button");
 		Layout.setConstraints(Back, GBC);
 
-
 		JPanel East = new JPanel(Layout);	// erzeugt den rechten Rand mit allen Buttons
 		East.add(Help);
 		East.add(Exit);
@@ -139,8 +140,17 @@ public class Migration implements ActionListener {
 		East.add(Next);
 		East.add(Back);
 		
-		JPanel South = new JPanel();		// erzeugt den unteren Rand
+		SouthPanel = createSouthPanel();
+		SouthPanel.setVisible(false);
+		Layout = new GridBagLayout();
+		GBC = new GridBagConstraints();
+		GBC.fill = GridBagConstraints.BOTH;
+		GBC.insets = getInsets(row, "ButtonGroup");
+		Layout.setConstraints(SouthPanel, GBC);
+
+		South = new JPanel(Layout);		// erzeugt den unteren Rand
 		South.setPreferredSize(new Dimension(500,50));
+		South.add(SouthPanel);
 		ScrollPanel = new JScrollPane();	// erzeugt das Hauptanzeigefenster in der Mitte des Frames
 				
 		Frame.getContentPane().add(North,BorderLayout.NORTH);	// fügt alle Komponenten dem Frame hinzu
@@ -160,7 +170,7 @@ public class Migration implements ActionListener {
 		Frame.getContentPane().setBackground(new Color(0,0,200));
 		Frame.setVisible(true);
 		initialize(); // initialisiert die Anwendung
-	
+		
 	} // end Migration (constructor)
 
 	
@@ -252,7 +262,6 @@ public class Migration implements ActionListener {
 				break;
 
 			case START:
-				System.out.println(Settings);
 				showStartPage();
 				break;
 		}
@@ -270,7 +279,7 @@ public class Migration implements ActionListener {
 		GBC = new GridBagConstraints();
 		GBC.fill = GridBagConstraints.BOTH;
 		PagePanel = new JPanel(Layout);
-		PagePanel.setBackground(new Color(255,255,230));
+		PagePanel.setBackground(Color.LIGHT_GRAY);
 
 		String Item = "Größe der Feldermatrix";
 		String Hint = "(5 \u2264 Wert \u2264 30)";
@@ -289,7 +298,7 @@ public class Migration implements ActionListener {
 		setComponents(Item, Hint, Comp, Value, Name, row);
 			
 		Item = "Anzahl Felder 'schwarz'";
-		Hint = "";
+		Hint = "Black";
 		Comp = "TextField";
 		Value = Settings.elementAt(BLACK).toString();
 		Name = "Black";
@@ -297,7 +306,7 @@ public class Migration implements ActionListener {
 		setComponents(Item, Hint, Comp, Value, Name, row);
 
 		Item = "Anzahl Felder 'weiß'";
-		Hint = "";
+		Hint = "White";
 		Comp = "TextField";
 		Value = Settings.elementAt(WHITE).toString();
 		Name = "White";
@@ -305,7 +314,7 @@ public class Migration implements ActionListener {
 		setComponents(Item, Hint, Comp, Value, Name, row);
 
 		Item = "Anzahl Felder 'rot'";
-		Hint = "";
+		Hint = "Red";
 		Comp = "TextField";
 		Value = Settings.elementAt(RED).toString();
 		Name = "Red";
@@ -313,7 +322,7 @@ public class Migration implements ActionListener {
 		setComponents(Item, Hint, Comp, Value, Name, row);
 
 		Item = "Anzahl Felder 'gelb'";
-		Hint = "";
+		Hint = "Yellow";
 		Comp = "TextField";
 		Value = Settings.elementAt(YELLOW).toString();
 		Name = "Yellow";
@@ -334,7 +343,7 @@ public class Migration implements ActionListener {
 	
 		setHeadlineText("Simulationsmatrix:");
 		Vector Data = new Vector();
-		Vector Positions = new Vector();
+		Positions = new Vector();
 		Randomizer = new Random();
 		
 		int size = Integer.parseInt(Settings.elementAt(MATRIX).toString());
@@ -382,11 +391,11 @@ public class Migration implements ActionListener {
 		ScrollPanel.getViewport().removeAll();
 		ScrollPanel.getViewport().add(Matrix.getTable());
 		ScrollPanel.validate();
-		
+	
 	} // end showStartPage
 	
-	
 
+	
 	/**
 	 * Erzeugt eine zufällige gültige Position.
 	 * @param Data
@@ -430,7 +439,7 @@ public class Migration implements ActionListener {
 			ItemLabel.setName(Name);
 			ItemLabel.setFont(new Font("Arial", Font.BOLD, 15));
 			ItemLabel.setForeground(new Color(0,0,220));
-			ItemLabel.setBackground(new Color(255,255,230));
+			ItemLabel.setBackground(Color.LIGHT_GRAY);
 
 			GBC.gridy = row;
 			GBC.gridx = 0;
@@ -442,7 +451,7 @@ public class Migration implements ActionListener {
 		else {
 			JLabel ItemLabel = new JLabel(Item + ":");
 			ItemLabel.setFont(new Font("Arial", Font.BOLD, 15));
-			ItemLabel.setBackground(new Color(255,255,230));
+			ItemLabel.setBackground(Color.LIGHT_GRAY);
 
 			GBC.gridy = row;
 			GBC.gridx = 0;
@@ -490,11 +499,30 @@ public class Migration implements ActionListener {
 			GBC.insets = getInsets(row, "Field");
 			Layout.setConstraints(TField, GBC);
 			PagePanel.add(TField);
-
-			JLabel HintLabel = new JLabel(Hint);
-			HintLabel.setFont(new Font("Arial", Font.PLAIN, 13));
-			HintLabel.setBackground(new Color(255,255,230));
-
+			JLabel HintLabel;
+			
+			if (Hint.equals("Black") || Hint.equals("White") || Hint.equals("Red") || Hint.equals("Yellow")) {
+				HintLabel = new JLabel("\u25cf");
+				HintLabel.setFont(new Font(HintLabel.getFont().getFontName(), Font.BOLD, 20));
+				HintLabel.setBackground(Color.LIGHT_GRAY);
+				if (Hint.equals("Black")) {
+					HintLabel.setForeground(Color.BLACK);
+				}
+				else if (Hint.equals("White")) {
+					HintLabel.setForeground(Color.WHITE);	
+				}
+				else if (Hint.equals("Red")) {
+					HintLabel.setForeground(Color.RED);	
+				}
+				else if (Hint.equals("Yellow")) {
+					HintLabel.setForeground(Color.YELLOW);	
+				}
+			}
+			else {
+				HintLabel = new JLabel(Hint);
+				HintLabel.setFont(new Font("Arial", Font.PLAIN, 13));
+				HintLabel.setBackground(Color.LIGHT_GRAY);
+			}
 			GBC.gridx = GridBagConstraints.RELATIVE;
 			GBC.insets = getInsets(row, "Hint");
 			Layout.setConstraints(HintLabel, GBC);
@@ -502,6 +530,101 @@ public class Migration implements ActionListener {
 		}
 		
 	} // end setComponents
+	
+	
+	
+	/**
+	 * Erzeugt das untere Panel mit der RadioButton-Gruppe.
+	 * return SouthPanel
+	 **/	
+	private JPanel createSouthPanel() {
+		
+		RadioButtonGroup = new ButtonGroup();
+		Layout = new GridBagLayout();
+		GBC = new GridBagConstraints();
+		GBC.fill = GridBagConstraints.BOTH;
+
+		JLabel BlackLabel = new JLabel("schwarz:");
+		BlackLabel.setFont(new Font(BlackLabel.getFont().getFontName(), Font.BOLD, 12));
+		BlackLabel.setBackground(Color.LIGHT_GRAY);
+		GBC.gridx = 0;
+		GBC.insets = getInsets(0, "RadioLabel");
+		Layout.setConstraints(BlackLabel, GBC);
+		
+		JRadioButton BlackButton = new JRadioButton("\u25cf", true); 
+		BlackButton.setName("Black");
+		BlackButton.setFont(new Font(BlackButton.getFont().getFontName(), Font.BOLD, 20));
+		BlackButton.setForeground(Color.BLACK);
+		BlackButton.setBackground(Color.LIGHT_GRAY);
+		GBC.gridx = GridBagConstraints.RELATIVE;
+		GBC.insets = getInsets(0, "RadioButton");
+		Layout.setConstraints(BlackButton, GBC);
+		RadioButtonGroup.add(BlackButton);
+
+		JLabel WhiteLabel = new JLabel("weiß:");
+		WhiteLabel.setFont(new Font(WhiteLabel.getFont().getFontName(), Font.BOLD, 12));
+		WhiteLabel.setBackground(Color.LIGHT_GRAY);
+		GBC.gridx = GridBagConstraints.RELATIVE;;
+		GBC.insets = getInsets(0, "RadioLabel");
+		Layout.setConstraints(WhiteLabel, GBC);
+
+		JRadioButton WhiteButton = new JRadioButton("\u25cf"); 
+		WhiteButton.setName("White");
+		WhiteButton.setFont(new Font(WhiteButton.getFont().getFontName(), Font.BOLD, 20));
+		WhiteButton.setForeground(Color.WHITE);
+		WhiteButton.setBackground(Color.LIGHT_GRAY);
+		GBC.gridx = GridBagConstraints.RELATIVE;
+		GBC.insets = getInsets(0, "RadioButton");
+		Layout.setConstraints(WhiteButton, GBC);
+		RadioButtonGroup.add(WhiteButton);
+
+		JLabel RedLabel = new JLabel("rot:");
+		RedLabel.setFont(new Font(RedLabel.getFont().getFontName(), Font.BOLD, 12));
+		RedLabel.setBackground(Color.LIGHT_GRAY);
+		GBC.gridx = GridBagConstraints.RELATIVE;;
+		GBC.insets = getInsets(0, "RadioLabel");
+		Layout.setConstraints(RedLabel, GBC);
+
+		JRadioButton RedButton = new JRadioButton("\u25cf");
+		RedButton.setName("Red");
+		RedButton.setFont(new Font(RedButton.getFont().getFontName(), Font.BOLD, 20));
+		RedButton.setForeground(Color.RED);
+		RedButton.setBackground(Color.LIGHT_GRAY);
+		GBC.gridx = GridBagConstraints.RELATIVE;
+		GBC.insets = getInsets(0, "RadioButton");
+		Layout.setConstraints(RedButton, GBC);
+		RadioButtonGroup.add(RedButton);
+
+		JLabel YellowLabel = new JLabel("gelb:");
+		YellowLabel.setFont(new Font(YellowLabel.getFont().getFontName(), Font.BOLD, 12));
+		YellowLabel.setBackground(Color.LIGHT_GRAY);
+		GBC.gridx = GridBagConstraints.RELATIVE;;
+		GBC.insets = getInsets(0, "RadioLabel");
+		Layout.setConstraints(YellowLabel, GBC);
+
+		JRadioButton YellowButton = new JRadioButton("\u25cf");
+		YellowButton.setName("Yellow");
+		YellowButton.setFont(new Font(YellowButton.getFont().getFontName(), Font.BOLD, 20));
+		YellowButton.setForeground(Color.YELLOW);
+		YellowButton.setBackground(Color.LIGHT_GRAY);
+		GBC.gridx = GridBagConstraints.RELATIVE;
+		GBC.insets = getInsets(0, "RadioButton");
+		Layout.setConstraints(YellowButton, GBC);
+		RadioButtonGroup.add(YellowButton);
+
+		SouthPanel = new JPanel(Layout);
+		SouthPanel.setBackground(Color.LIGHT_GRAY);
+		SouthPanel.add(BlackLabel);
+		SouthPanel.add(BlackButton);
+		SouthPanel.add(WhiteLabel);
+		SouthPanel.add(WhiteButton);
+		SouthPanel.add(RedLabel);
+		SouthPanel.add(RedButton);
+		SouthPanel.add(YellowLabel);
+		SouthPanel.add(YellowButton);
+		return SouthPanel;
+		
+	} // end createSouthPanel
 	
 	
 	
@@ -629,18 +752,31 @@ public class Migration implements ActionListener {
 	 * Gibt die Summe der farbigen Felder der Matrix zurück    
 	 * @return sum
 	 **/
-	private int getSumOfColoredFields() {
+	public int getSumOfColoredFields() {
 		
-		int	sum = Integer.parseInt(((JTextField)getComponent("Black")).getText()); 
-		sum += Integer.parseInt(((JTextField)getComponent("White")).getText());
-		sum += Integer.parseInt(((JTextField)getComponent("Red")).getText());
-		sum += Integer.parseInt(((JTextField)getComponent("Yellow")).getText());
+		int sum = 0;
+		if (currentPage == SETUP) {
+			sum = Integer.parseInt(((JTextField)getComponent("Black")).getText()); 
+			sum += Integer.parseInt(((JTextField)getComponent("White")).getText());
+			sum += Integer.parseInt(((JTextField)getComponent("Red")).getText());
+			sum += Integer.parseInt(((JTextField)getComponent("Yellow")).getText());
+		}
+		else {
+			for (int i = 0; i < Positions.size(); i++) {
+				Vector PositionSet = (Vector)Positions.elementAt(i);
+				for (int j = 0; j < PositionSet.size(); j++) {
+					if (!PositionSet.elementAt(j).toString().equals("")) {
+						sum++;
+					}
+				}
+			}
+		}
 		return sum;
 		
 	} // end getSumOfColoredFields
+
 	
-	
-	
+
 	/**
 	 * Gibt die Abstände zwischen den J-Komponenten zurück.    
 	 * @param row
@@ -649,35 +785,44 @@ public class Migration implements ActionListener {
 	 **/
 	public Insets getInsets(int row, String Element) {
 
-		int first = 15, other = 10;
-		Insets NewInsets = new Insets(0,0,0,0);
+		int first = 15, def = 10;
+		Insets NewInsets = new Insets(0, 0, 0, 0);
 
 		if (Element.equalsIgnoreCase("Button")) {
-			return new Insets(10, 10, 10, 10);
-		}		
-		else if (Element.equalsIgnoreCase("Buttongroup")) {
-			return new Insets(40, 10, 10, 10);
+			return new Insets(def, def, def, def);
+		}
+		else if (Element.equalsIgnoreCase("ButtonBlock")) {
+			return new Insets(40, def, def, def);
+		}
+		else if (Element.equalsIgnoreCase("ButtonGroup")) {
+			return new Insets(def, def, def, def);
 		}		
 		else if (Element.equalsIgnoreCase("HelpArea")) {
-			return new Insets(10, 10, 10, 10);
+			return new Insets(def, def, def, def);
+		}
+		else if (Element.equalsIgnoreCase("RadioButton")) {
+			return new Insets(def, 0, def, def);
+		}
+		else if (Element.equalsIgnoreCase("RadioLabel")) {
+			return new Insets(def, def, def, 0);
 		}
 		else if (Element.equalsIgnoreCase("Label") && row == 0) {
-			return new Insets(first, other, other, other);
+			return new Insets(first, def, def, def);
 		}
 		else if (Element.equalsIgnoreCase("Label") && row != 0) {
-			return new Insets(other, other, other, other);
+			return new Insets(def, def, def, def);
 		}
 		else if (Element.equalsIgnoreCase("Field") && row == 0) {
-			return new Insets(first, other, other, 5);
+			return new Insets(first, def, def, 5);
 		}
 		else if (Element.equalsIgnoreCase("Field") && row != 0) {
-			return new Insets(other, other, other, 5);
+			return new Insets(def, def, def, 5);
 		}
 		else if (Element.equalsIgnoreCase("Hint") && row == 0) {
-			return new Insets(first, 0, other, 0);
+			return new Insets(first, 5, def, 0);
 		}
 		else if (Element.equalsIgnoreCase("Hint") && row != 0) {
-			return new Insets(other, 0, other, other);
+			return new Insets(def, 5, def, def);
 		}
 		return NewInsets;
 	
@@ -762,6 +907,7 @@ public class Migration implements ActionListener {
 			input = JOptionPane.showOptionDialog(Frame, Message, Subject, JOptionPane.DEFAULT_OPTION,
 												 JOptionPane.WARNING_MESSAGE, null, Buttons, Buttons[0]);
 		}
+
 		return input;
 	
 	} // end showMessage
@@ -797,10 +943,14 @@ public class Migration implements ActionListener {
 		Reset.setEnabled(true);
 
 		if (currentPage > SETUP) {
+			SouthPanel.setVisible(true);
+			South.setBackground(Color.LIGHT_GRAY);
 			Back.setEnabled(true);
 			Next.setEnabled(false);
 		}
 		else {
+			SouthPanel.setVisible(false);
+			South.setBackground(UIManager.getColor("TableHeader.background"));
 			Back.setEnabled(false);
 			Next.setEnabled(true);
 			Next.grabFocus();
@@ -870,6 +1020,25 @@ public class Migration implements ActionListener {
 		
 	} // end getScrollPanel
 
+
+	
+	/**
+	 * Gibt den Namen des selktierten RadioButtons zurück.
+	 * @return String
+	 */
+	public String getSelection() {
+		
+		Enumeration RadioButtons = RadioButtonGroup.getElements();	
+		while (RadioButtons.hasMoreElements()) {
+			JRadioButton RButton = (JRadioButton)RadioButtons.nextElement();
+			if (RButton.isSelected()) {
+				return RButton.getName();
+			}
+		}
+		return "";
+		
+	} // end getSelection
+	
 	
 	
 	/**
