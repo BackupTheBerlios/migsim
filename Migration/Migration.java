@@ -1,7 +1,6 @@
 import java.awt.*;
 import java.awt.event.*;
 import java.util.*;
-
 import javax.swing.*;
 
 
@@ -20,12 +19,16 @@ public class Migration implements ActionListener {
 	private static final int WHITE = 2;
 	private static final int RED = 3;
 	private static final int YELLOW = 4;
-	
+
+	private static final int ROW = 0;
+	private static final int COL = 1;
+
 	private JFrame Frame;	
 	private JButton Help;
 	private JButton Reset;
 	private JButton Exit;
 	private JButton Next;
+	private JButton Back;
 	private JLabel Headline;
 	private JScrollPane ScrollPanel;
 	private JPanel PagePanel;
@@ -33,8 +36,11 @@ public class Migration implements ActionListener {
 	private GridBagLayout Layout;
 	private	GridBagConstraints GBC;
 	private Vector Settings;
+	private Random Randomizer;
 	int currentPage;
 	boolean error;
+
+	
 	
 	/**
 	 * Der Konstruktor erzeugt den Anwendungsframe mit allen Komponenten.
@@ -96,6 +102,7 @@ public class Migration implements ActionListener {
 		Exit.addActionListener(this);
 		Exit.setEnabled(false);
 		GBC.gridy = row++;
+		GBC.insets = getInsets(row, "Buttongroup");
 		Layout.setConstraints(Exit, GBC);
 				
 		Reset = new JButton("Reset");	// erzeugt den Reset-Button
@@ -103,6 +110,7 @@ public class Migration implements ActionListener {
 		Reset.addActionListener(this);
 		Reset.setEnabled(false);
 		GBC.gridy = row++;
+		GBC.insets = getInsets(row, "Button");
 		Layout.setConstraints(Reset, GBC);
 		
 		Next = new JButton("Weiter");	// erzeugt den Weiter-Button
@@ -110,19 +118,28 @@ public class Migration implements ActionListener {
 		Next.addActionListener(this);
 		Next.setEnabled(false);
 		GBC.gridy = row++;
+		GBC.insets = getInsets(row, "Buttongroup");
 		Layout.setConstraints(Next, GBC);
+
+		Back = new JButton("Zurück");	// erzeugt den Back-Button
+		Back.setPreferredSize(new Dimension(90,25));
+		Back.addActionListener(this);
+		Back.setEnabled(false);
+		GBC.gridy = row++;
+		GBC.insets = getInsets(row, "Button");
+		Layout.setConstraints(Back, GBC);
+
 
 		JPanel East = new JPanel(Layout);	// erzeugt den rechten Rand mit allen Buttons
 		East.add(Help);
 		East.add(Exit);
 		East.add(Reset);
 		East.add(Next);
+		East.add(Back);
 		
 		JPanel South = new JPanel();		// erzeugt den unteren Rand
 		South.setPreferredSize(new Dimension(500,50));
-
 		ScrollPanel = new JScrollPane();	// erzeugt das Hauptanzeigefenster in der Mitte des Frames
-		ScrollPanel.setBackground(new Color(255,255,230));
 				
 		Frame.getContentPane().add(North,BorderLayout.NORTH);	// fügt alle Komponenten dem Frame hinzu
 		Frame.getContentPane().add(East,BorderLayout.EAST);
@@ -140,11 +157,9 @@ public class Migration implements ActionListener {
 		Frame.setLocation(screenWidth/6, screenHeight/6);
 		Frame.getContentPane().setBackground(new Color(0,0,200));
 		Frame.setVisible(true);
-
-		initialize(); // initialisiert dei Anwendung
-		setActivity(); // setzt die Button-Aktivität
+		initialize(); // initialisiert die Anwendung
 	
-	} // end ASP_Selection (constructor)
+	} // end Migration (constructor)
 
 	
 	
@@ -154,12 +169,14 @@ public class Migration implements ActionListener {
 	private void initialize() {
 	
 		Settings = new Vector();
-		for (int i = 0; i <= YELLOW; i++) {
-			Settings.addElement(new Integer(0));
+		Settings.addElement("5");
+		for (int i = BLACK; i <= YELLOW; i++) {
+			Settings.addElement("0");
 		}
 		error = false;
 		currentPage = SETUP;
 		showPage();
+		setActivity(); // setzt die Button-Aktivität
 		
 	} // end initialize()
 
@@ -179,14 +196,20 @@ public class Migration implements ActionListener {
 			}
 		}
 
+		else if (AE.getSource() == Back) {
+			ScrollPanel.getColumnHeader().removeAll();
+			ScrollPanel.getRowHeader().removeAll();
+			currentPage = SETUP;
+			showPage();
+			setActivity();
+		}
+		
 		else if (AE.getSource() == Reset) {
 			if (currentPage == SETUP) {
-				((JTextField)getComponent("Matrix")).setText("5");
-				((JTextField)getComponent("Black")).setText("0");
-				((JTextField)getComponent("White")).setText("0");
-				((JTextField)getComponent("Red")).setText("0");
-				((JTextField)getComponent("Yellow")).setText("0");
-				refreshInfoLabel(25);
+				initialize();
+			}
+			else if (currentPage == START) {
+				showStartPage();
 			}
 		}
 		
@@ -206,6 +229,7 @@ public class Migration implements ActionListener {
 				Settings.setElementAt(((JTextField)getComponent("Yellow")).getText(), YELLOW);
 				currentPage++;
 				showPage();
+				setActivity();
 			}
 		}
 		setDefaultCursor();
@@ -227,7 +251,7 @@ public class Migration implements ActionListener {
 
 			case START:
 				System.out.println(Settings);
-//				showStartPage();
+				showStartPage();
 				break;
 		}
 	} // end showPage()
@@ -240,7 +264,6 @@ public class Migration implements ActionListener {
 	private void showSetupPage() {
 
 		setHeadlineText("Bitte die Initialisierungswerte festlegen:");
-	
 		Layout = new GridBagLayout();
 		GBC = new GridBagConstraints();
 		GBC.fill = GridBagConstraints.BOTH;
@@ -250,7 +273,7 @@ public class Migration implements ActionListener {
 		String Item = "Größe der Feldermatrix";
 		String Hint = "(5 \u2264 Wert \u2264 30)";
 		String Comp = "TextField";
-		String Value = "5";
+		String Value = Settings.elementAt(MATRIX).toString();
 		String Name = "Matrix";
 		int row = 0;
 		setComponents(Item, Hint, Comp, Value, Name, row);
@@ -266,7 +289,7 @@ public class Migration implements ActionListener {
 		Item = "Anzahl Felder 'schwarz'";
 		Hint = "";
 		Comp = "TextField";
-		Value = "0";
+		Value = Settings.elementAt(BLACK).toString();
 		Name = "Black";
 		row++;
 		setComponents(Item, Hint, Comp, Value, Name, row);
@@ -274,7 +297,7 @@ public class Migration implements ActionListener {
 		Item = "Anzahl Felder 'weiß'";
 		Hint = "";
 		Comp = "TextField";
-		Value = "0";
+		Value = Settings.elementAt(WHITE).toString();
 		Name = "White";
 		row++;
 		setComponents(Item, Hint, Comp, Value, Name, row);
@@ -282,7 +305,7 @@ public class Migration implements ActionListener {
 		Item = "Anzahl Felder 'rot'";
 		Hint = "";
 		Comp = "TextField";
-		Value = "0";
+		Value = Settings.elementAt(RED).toString();
 		Name = "Red";
 		row++;
 		setComponents(Item, Hint, Comp, Value, Name, row);
@@ -290,16 +313,99 @@ public class Migration implements ActionListener {
 		Item = "Anzahl Felder 'gelb'";
 		Hint = "";
 		Comp = "TextField";
-		Value = "0";
+		Value = Settings.elementAt(YELLOW).toString();
 		Name = "Yellow";
 		row++;
 		setComponents(Item, Hint, Comp, Value, Name, row);
 
 		setPagePanel(PagePanel);
+		refreshInfoLabel(Integer.parseInt(Settings.elementAt(MATRIX).toString()));
 		
 	} // end showSettings
 
 	
+	
+	/**
+	 * Generiert die Startpositionen in der Feldermatrix.  
+	 */	
+	private void showStartPage() {
+	
+		setHeadlineText("Simulationsmatrix:");
+		Vector Data = new Vector();
+		Randomizer = new Random();
+		
+		int size = Integer.parseInt(Settings.elementAt(MATRIX).toString());
+		for (int i = 0; i < size; i++) {
+			Vector DataSet = new Vector();
+			for (int j = 0; j < size; j++) {	
+				DataSet.addElement("");
+			}
+			Data.addElement(DataSet);
+		}
+		
+		int black = Integer.parseInt(Settings.elementAt(BLACK).toString());
+		for (int i = 0; i < black; i++) {
+			int Position[] = getRandomPosition(Data, Randomizer);
+			((Vector)Data.elementAt(Position[ROW])).setElementAt("B", Position[COL]);
+		}
+
+		int white = Integer.parseInt(Settings.elementAt(WHITE).toString());
+		for (int i = 0; i < white; i++) {
+			int Position[] = getRandomPosition(Data, Randomizer);
+			((Vector)Data.elementAt(Position[ROW])).setElementAt("W", Position[COL]);
+		}
+
+		int red = Integer.parseInt(Settings.elementAt(RED).toString());
+		for (int i = 0; i < red; i++) {
+			int Position[] = getRandomPosition(Data, Randomizer);
+			((Vector)Data.elementAt(Position[ROW])).setElementAt("R", Position[COL]);
+		}
+
+		int yellow = Integer.parseInt(Settings.elementAt(YELLOW).toString());
+		for (int i = 0; i < yellow; i++) {
+			int Position[] = getRandomPosition(Data, Randomizer);
+			((Vector)Data.elementAt(Position[ROW])).setElementAt("Y", Position[COL]);
+		}
+		
+		Vector ColumnNames = new Vector();
+		for (int i = 1; i <= size; i++) {
+			ColumnNames.addElement(String.valueOf(i));
+		}
+		MigrationMatrix Matrix = new MigrationMatrix(this, Data, ColumnNames);
+		ScrollPanel.getViewport().removeAll();
+		ScrollPanel.getViewport().add(Matrix.getTable());
+		ScrollPanel.validate();
+		
+	} // end showStartPage
+	
+	
+
+	/**
+	 * Erzeugt eine zufällige gültige Position.
+	 * @param Data
+	 * @param size
+	 * @param Randomizer
+	 * @return Position
+	 **/
+	private int[] getRandomPosition(Vector Data, Random Randomizer) {
+		
+		int size = Integer.parseInt(Settings.elementAt(MATRIX).toString());
+		int randomRow = Randomizer.nextInt(size);
+		int randomCol = Randomizer.nextInt(size);
+		
+		while (!((Vector)Data.elementAt(randomRow)).elementAt(randomCol).toString().equals("")) {
+			randomRow = Randomizer.nextInt(size);
+			randomCol = Randomizer.nextInt(size);
+		}
+		int Position[] = new int[2]; 
+		Position[ROW] = randomRow;
+		Position[COL] = randomCol;
+		
+		return Position;
+	
+	} // end getRandomPosition
+	
+
 	
 	/**
 	 * Setzt die Komponenten auf die aktuelle Seite.
@@ -412,7 +518,7 @@ public class Migration implements ActionListener {
 	 **/
 	private void refreshInfoLabel(int size) {
 		
-		int coloredNumber = size * 2 / 3;
+		int coloredNumber = size * size * 2 / 3;
 		int left = coloredNumber - getSumOfColoredFields();
 		if (left == 1) { 
 			((JLabel)getComponent("InfoLabel")).setText("\u2192 1 Feld von " + coloredNumber + " möglichen übrig");
@@ -421,7 +527,7 @@ public class Migration implements ActionListener {
 			((JLabel)getComponent("InfoLabel")).setText("\u2192 " + left + " Felder von " + coloredNumber + " möglichen übrig");
 		}
 	
-	} // end refreshHints
+	} // end refreshInfoLabel
 
 	
 
@@ -439,7 +545,7 @@ public class Migration implements ActionListener {
 			if (!error) {
 				if (value >= 5 && value <= 30) {
 					if (value * value * 2 / 3 - getSumOfColoredFields() >= 0) {
-						refreshInfoLabel(value * value);
+						refreshInfoLabel(value);
 						return true;
 					}
 					else {
@@ -470,14 +576,13 @@ public class Migration implements ActionListener {
 			}
 			int value = getIntValue(Value, Item);
 			if (!error) {
-				int sumOfFields = Integer.parseInt(((JTextField)getComponent("Matrix")).getText());
-				sumOfFields = sumOfFields * sumOfFields; 
-				if (getSumOfColoredFields() <= (sumOfFields * 2 / 3)) {
-					refreshInfoLabel(sumOfFields);
+				int size = Integer.parseInt(((JTextField)getComponent("Matrix")).getText());
+				if (getSumOfColoredFields() <= (size * size * 2 / 3)) {
+					refreshInfoLabel(size);
 					return true;
 				}
 				else {
-					messageHandling("MaxExceeded", String.valueOf(sumOfFields));
+					messageHandling("MaxExceeded", String.valueOf(size * size));
 				}
 			}
 			else {
@@ -525,7 +630,7 @@ public class Migration implements ActionListener {
 		sum += Integer.parseInt(((JTextField)getComponent("Yellow")).getText());
 		return sum;
 		
-	} // end SumOfFields
+	} // end getSumOfColoredFields
 	
 	
 	
@@ -543,6 +648,9 @@ public class Migration implements ActionListener {
 		if (Element.equalsIgnoreCase("Button")) {
 			return new Insets(10, 10, 10, 10);
 		}		
+		else if (Element.equalsIgnoreCase("Buttongroup")) {
+			return new Insets(40, 10, 10, 10);
+		}		
 		else if (Element.equalsIgnoreCase("HelpArea")) {
 			return new Insets(10, 10, 10, 10);
 		}
@@ -550,12 +658,6 @@ public class Migration implements ActionListener {
 			return new Insets(first, other, other, other);
 		}
 		else if (Element.equalsIgnoreCase("Label") && row != 0) {
-			return new Insets(other, other, other, other);
-		}
-		else if (Element.equalsIgnoreCase("Box") && row == 0) {
-			return new Insets(first, other, other, other);
-		}
-		else if (Element.equalsIgnoreCase("Box") && row != 0) {
 			return new Insets(other, other, other, other);
 		}
 		else if (Element.equalsIgnoreCase("Field") && row == 0) {
@@ -568,12 +670,6 @@ public class Migration implements ActionListener {
 			return new Insets(first, 0, other, 0);
 		}
 		else if (Element.equalsIgnoreCase("Hint") && row != 0) {
-			return new Insets(other, 0, other, other);
-		}
-		else if (Element.equalsIgnoreCase("Radio") && row == 0) {
-			return new Insets(first, 0, other, 0);
-		}
-		else if (Element.equalsIgnoreCase("Radio") && row != 0) {
 			return new Insets(other, 0, other, other);
 		}
 		return NewInsets;
@@ -623,7 +719,7 @@ public class Migration implements ActionListener {
 		}
 		return input;
 		
-	} // messageHandling
+	} // end messageHandling
 
 	
 	
@@ -692,7 +788,16 @@ public class Migration implements ActionListener {
 
 		Exit.setEnabled(true);
 		Reset.setEnabled(true);
-		Next.setEnabled(true);
+
+		if (currentPage > SETUP) {
+			Back.setEnabled(true);
+			Next.setEnabled(false);
+		}
+		else {
+			Back.setEnabled(false);
+			Next.setEnabled(true);
+			Next.grabFocus();
+		}
 		
 	} // end setActivity
 
@@ -750,6 +855,17 @@ public class Migration implements ActionListener {
 	
 	
 	/**
+	 * Gibt das ScrollPanel zurück.
+	 */
+	public JScrollPane getScrollPanel() {
+		
+		return ScrollPanel;
+		
+	} // end getScrollPanel
+
+	
+	
+	/**
 	 * Die Main-Methode erteugt das Migration-Object.
 	 * @param args
 	 */
@@ -760,4 +876,4 @@ public class Migration implements ActionListener {
 	} // end main
 
 	
-} // end class ASP_Selection
+} // end class Migration
