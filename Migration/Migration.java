@@ -11,8 +11,6 @@ import javax.swing.*;
 
 public class Migration implements ActionListener {
 
-	private static final int ERROR = -99;
-	
 	private static final int SETUP = 0;
 	private static final int START = 1;
 	private static final int END = 2;
@@ -31,11 +29,12 @@ public class Migration implements ActionListener {
 	private JLabel Headline;
 	private JScrollPane ScrollPanel;
 	private JPanel PagePanel;
-	private JTextField ErrorField;
+	private JTextField CurrentTField;
 	private GridBagLayout Layout;
 	private	GridBagConstraints GBC;
 	private Vector Settings;
 	int currentPage;
+	boolean error;
 	
 	/**
 	 * Der Konstruktor erzeugt den Anwendungsframe mit allen Komponenten.
@@ -139,7 +138,7 @@ public class Migration implements ActionListener {
 
 		Frame.setSize(new Dimension(800,600));
 		Frame.setLocation(screenWidth/6, screenHeight/6);
-		Frame.getContentPane().setBackground(new Color(100,200,255));
+		Frame.getContentPane().setBackground(new Color(0,0,200));
 		Frame.setVisible(true);
 
 		initialize(); // initialisiert dei Anwendung
@@ -158,6 +157,7 @@ public class Migration implements ActionListener {
 		for (int i = 0; i <= YELLOW; i++) {
 			Settings.addElement(new Integer(0));
 		}
+		error = false;
 		currentPage = SETUP;
 		showPage();
 		
@@ -179,9 +179,34 @@ public class Migration implements ActionListener {
 			}
 		}
 
+		else if (AE.getSource() == Reset) {
+			if (currentPage == SETUP) {
+				((JTextField)getComponent("Matrix")).setText("5");
+				((JTextField)getComponent("Black")).setText("0");
+				((JTextField)getComponent("White")).setText("0");
+				((JTextField)getComponent("Red")).setText("0");
+				((JTextField)getComponent("Yellow")).setText("0");
+				refreshInfoLabel(25);
+			}
+		}
+		
 		else if (AE.getSource() == Next) {
-			currentPage++;
+			boolean valuesValid = true;
+			if (CurrentTField != null) {
+				if (!changeValue(CurrentTField.getName(), CurrentTField.getText())) {
+					CurrentTField.grabFocus();
+					valuesValid = false;
+				}
+			}
+			if (valuesValid) {
+				Settings.setElementAt(((JTextField)getComponent("Matrix")).getText(), MATRIX);
+				Settings.setElementAt(((JTextField)getComponent("Black")).getText(), BLACK);
+				Settings.setElementAt(((JTextField)getComponent("White")).getText(), WHITE);
+				Settings.setElementAt(((JTextField)getComponent("Red")).getText(), RED);
+				Settings.setElementAt(((JTextField)getComponent("Yellow")).getText(), YELLOW);
+				currentPage++;
 				showPage();
+			}
 		}
 		setDefaultCursor();
 
@@ -223,41 +248,49 @@ public class Migration implements ActionListener {
 		PagePanel.setBackground(new Color(255,255,230));
 
 		String Item = "Grˆﬂe der Feldermatrix";
-		String Hint = "(10 \u2264 Wert \u2264 100)";
+		String Hint = "(5 \u2264 Wert \u2264 30)";
 		String Comp = "TextField";
-		String Value = "10";
+		String Value = "5";
 		String Name = "Matrix";
 		int row = 0;
 		setComponents(Item, Hint, Comp, Value, Name, row);
 
+		Item = "\u2192 16 Felder von 16 mˆglichen ¸brig.";
+		Hint = "";
+		Comp = "JLabel";
+		Value = "";
+		Name = "InfoLabel";
+		row++;
+		setComponents(Item, Hint, Comp, Value, Name, row);
+			
 		Item = "Anzahl Felder 'schwarz'";
-		Hint = "(max. 6 Felder)";
+		Hint = "";
 		Comp = "TextField";
-		Value = "1";
+		Value = "0";
 		Name = "Black";
 		row++;
 		setComponents(Item, Hint, Comp, Value, Name, row);
 
 		Item = "Anzahl Felder 'weiﬂ'";
-		Hint = "(max. 6 Felder)";
+		Hint = "";
 		Comp = "TextField";
-		Value = "1";
+		Value = "0";
 		Name = "White";
 		row++;
 		setComponents(Item, Hint, Comp, Value, Name, row);
 
 		Item = "Anzahl Felder 'rot'";
-		Hint = "(max. 6 Felder)";
+		Hint = "";
 		Comp = "TextField";
-		Value = "1";
+		Value = "0";
 		Name = "Red";
 		row++;
 		setComponents(Item, Hint, Comp, Value, Name, row);
 
 		Item = "Anzahl Felder 'gelb'";
-		Hint = "(max. 6 Felder)";
+		Hint = "";
 		Comp = "TextField";
-		Value = "1";
+		Value = "0";
 		Name = "Yellow";
 		row++;
 		setComponents(Item, Hint, Comp, Value, Name, row);
@@ -279,35 +312,64 @@ public class Migration implements ActionListener {
 	 **/
 	public void setComponents(String Item, String Hint, String Comp, String Value, String Name, int row) {
 		
-		JLabel ItemLabel = new JLabel(Item + ":");
-		ItemLabel.setFont(new Font("Arial", Font.BOLD, 15));
-		ItemLabel.setBackground(new Color(255,255,230));
+		if (Comp.equalsIgnoreCase("JLabel")) {
+			JLabel ItemLabel = new JLabel(Item);
+			ItemLabel.setName(Name);
+			ItemLabel.setFont(new Font("Arial", Font.BOLD, 15));
+			ItemLabel.setForeground(new Color(0,0,220));
+			ItemLabel.setBackground(new Color(255,255,230));
 
-		GBC.gridy = row;
-		GBC.insets = getInsets(row, "Label");
-		Layout.setConstraints(ItemLabel, GBC);
-		PagePanel.add(ItemLabel);
+			GBC.gridy = row;
+			GBC.gridx = 0;
+			GBC.gridwidth = 3;
+			GBC.insets = getInsets(row, "Label");
+			Layout.setConstraints(ItemLabel, GBC);
+			PagePanel.add(ItemLabel);
+		}
+		else {
+			JLabel ItemLabel = new JLabel(Item + ":");
+			ItemLabel.setFont(new Font("Arial", Font.BOLD, 15));
+			ItemLabel.setBackground(new Color(255,255,230));
+
+			GBC.gridy = row;
+			GBC.gridx = 0;
+			GBC.gridwidth = 1;
+			GBC.insets = getInsets(row, "Label");
+			Layout.setConstraints(ItemLabel, GBC);
+			PagePanel.add(ItemLabel);
+		}
 		
 		if (Comp.equalsIgnoreCase("TextField")) {
-			final JTextField TField = new JTextField(Value); // "final" ist notwendig f¸r die focusGained()-Methode
+
+			final JTextField TField = new JTextField(Value); // "final" ist notwendig f¸r den Focus-Listener
 			TField.setName(Name);
 			TField.setFont(new Font("Arial", Font.PLAIN, 13));
 			TField.setPreferredSize(new Dimension(40, 25));
 			TField.setHorizontalAlignment(JTextField.RIGHT);
 			TField.addFocusListener(new FocusAdapter() { // Selectiert den Inhalt des Textfeldes sobald es angeklickt wird
 				public void focusGained (FocusEvent FE){
-					if (ErrorField != null) {
-						JTextField TempField = ErrorField;
-						ErrorField = null;
-						TempField.grabFocus();
+					if (error) {
+						CurrentTField.grabFocus();
 					}
 					TField.selectAll();
 				}
 				public void focusLost (FocusEvent FE){
-					if (!changeValue(TField.getName(), TField.getText())) {
-						ErrorField = TField;
+					if (!error) {	
+						if (FE.getOppositeComponent() instanceof JTextField) {
+							if (!changeValue(TField.getName(), TField.getText())) {
+								CurrentTField = TField;
+								error = true;
+							}
+						}
+						else if (FE.getOppositeComponent() instanceof JButton) {
+							if (((JButton)FE.getOppositeComponent()).getText().equals("Weiter")) {
+								CurrentTField = TField;
+							}
+						}
 					}
-					
+					else {
+						error = false;
+					}
 				}
 			});
 
@@ -315,16 +377,16 @@ public class Migration implements ActionListener {
 			GBC.insets = getInsets(row, "Field");
 			Layout.setConstraints(TField, GBC);
 			PagePanel.add(TField);
+
+			JLabel HintLabel = new JLabel(Hint);
+			HintLabel.setFont(new Font("Arial", Font.PLAIN, 13));
+			HintLabel.setBackground(new Color(255,255,230));
+
+			GBC.gridx = GridBagConstraints.RELATIVE;
+			GBC.insets = getInsets(row, "Hint");
+			Layout.setConstraints(HintLabel, GBC);
+			PagePanel.add(HintLabel);
 		}
-
-		JLabel HintLabel = new JLabel(Hint);
-		HintLabel.setFont(new Font("Arial", Font.PLAIN, 13));
-		HintLabel.setBackground(new Color(255,255,230));
-
-		GBC.gridx = GridBagConstraints.RELATIVE;
-		GBC.insets = getInsets(row, "Hint");
-		Layout.setConstraints(HintLabel, GBC);
-		PagePanel.add(HintLabel);
 		
 	} // end setComponents
 	
@@ -343,6 +405,25 @@ public class Migration implements ActionListener {
 	} // end setPagePanel
 
 	
+	
+	/**
+	 * Aktualisiert die Felderanzahl im InfoLabel.    
+	 * @param size
+	 **/
+	private void refreshInfoLabel(int size) {
+		
+		int coloredNumber = size * 2 / 3;
+		int left = coloredNumber - getSumOfColoredFields();
+		if (left == 1) { 
+			((JLabel)getComponent("InfoLabel")).setText("\u2192 1 Feld von " + coloredNumber + " mˆglichen ¸brig");
+		}
+		else {
+			((JLabel)getComponent("InfoLabel")).setText("\u2192 " + left + " Felder von " + coloredNumber + " mˆglichen ¸brig");
+		}
+	
+	} // end refreshHints
+
+	
 
 	/**
 	 * ƒndert die Eingabewerte.    
@@ -355,18 +436,55 @@ public class Migration implements ActionListener {
 		if (Name.equals("Matrix")) {
 			String Item = "Matrixgrˆﬂe";
 			int value = getIntValue(Value, Item);
-			if (value != ERROR) {
-				if (value >= 10 && value <= 100) {
-					return true;
+			if (!error) {
+				if (value >= 5 && value <= 30) {
+					if (value * value * 2 / 3 - getSumOfColoredFields() >= 0) {
+						refreshInfoLabel(value * value);
+						return true;
+					}
+					else {
+						messageHandling("MatrixSizeError1", Item);
+					}
 				}
 				else {
-					messageHandling("MatrixSizeError", Item);
+					messageHandling("MatrixSizeError2", Item);
 				}
+			}
+			else {
+				error = false;
 			}
 		}
 		else {
-			return true;
+			String Item = "";
+			if (Name.equals("Black")) {
+				Item = "Anteil Schwarz";
+			}
+			else if (Name.equals("White")) {
+				Item = "Anteil Weiﬂ";
+			}
+			else if (Name.equals("Red")) {
+				Item = "Anteil Rot";
+			}
+			else if (Name.equals("Yellow")) {
+				Item = "Anteil Gelb";
+			}
+			int value = getIntValue(Value, Item);
+			if (!error) {
+				int sumOfFields = Integer.parseInt(((JTextField)getComponent("Matrix")).getText());
+				sumOfFields = sumOfFields * sumOfFields; 
+				if (getSumOfColoredFields() <= (sumOfFields * 2 / 3)) {
+					refreshInfoLabel(sumOfFields);
+					return true;
+				}
+				else {
+					messageHandling("MaxExceeded", String.valueOf(sumOfFields));
+				}
+			}
+			else {
+				error = false;
+			}			
 		}
+
 		return false;
 		
 	} // end changeValues
@@ -387,12 +505,28 @@ public class Migration implements ActionListener {
 		}
 		catch (Exception Ex) {
 			messageHandling("NotNumber", Item);
-			return ERROR;
+			error = true;
+			return 0;
 		}		
-		
-		
+	
 	} // end getIntValue
 
+	
+	
+	/**
+	 * Gibt die Summe der farbigen Felder der Matrix zur¸ck    
+	 * @return sum
+	 **/
+	private int getSumOfColoredFields() {
+		
+		int	sum = Integer.parseInt(((JTextField)getComponent("Black")).getText()); 
+		sum += Integer.parseInt(((JTextField)getComponent("White")).getText());
+		sum += Integer.parseInt(((JTextField)getComponent("Red")).getText());
+		sum += Integer.parseInt(((JTextField)getComponent("Yellow")).getText());
+		return sum;
+		
+	} // end SumOfFields
+	
 	
 	
 	/**
@@ -471,8 +605,20 @@ public class Migration implements ActionListener {
 			Message = "Im Feld \"" + Item + "\" sind nur nat¸rliche Zahlen zugelassen!";
 			showMessage("Error", "Error", Message); 
 		}
-		else if (Cause.equalsIgnoreCase("MatrixSizeError")) {
-			Message = "Im Feld \"" + Item + "\" sind nur nat¸rliche Zahlen zwischen 10 und 100 zugelassen!";
+		else if (Cause.equalsIgnoreCase("MatrixSizeError1")) {
+			double tempValue = Math.sqrt(getSumOfColoredFields() * 3 / 2);
+			int value = (int)tempValue + 1;
+			Message = "F¸r die spezifizierte Anzahl farbiger Felder muss die Matricgrˆﬂe mindestens " + value + " betragen!";
+			showMessage("Error", "Error", Message); 
+		}
+		else if (Cause.equalsIgnoreCase("MatrixSizeError2")) {
+			Message = "Im Feld \"" + Item + "\" sind nur nat¸rliche Zahlen zwischen 5 und 30 zugelassen!";
+			showMessage("Error", "Error", Message); 
+		}
+		else if (Cause.equalsIgnoreCase("MaxExceeded")) {
+			int value = Integer.parseInt(Item) * 2 / 3;
+			Message = "Die Anzahl der farbigen Felder darf nicht hˆher als " + value + " sein!\n";
+			Message += "Das entspricht 2/3 der Gesamtanzahl der Felder von " + Item + ".";
 			showMessage("Error", "Error", Message); 
 		}
 		return input;
@@ -545,6 +691,7 @@ public class Migration implements ActionListener {
 	public void setActivity() {
 
 		Exit.setEnabled(true);
+		Reset.setEnabled(true);
 		Next.setEnabled(true);
 		
 	} // end setActivity
@@ -579,11 +726,12 @@ public class Migration implements ActionListener {
 	 */	
 	private boolean exitApplication() {
 		
-		int input = messageHandling("Exit", "");
+/*		int input = messageHandling("Exit", "");
 		if (input == 0) {
 			return true; 
 		}
 		return false;
+*/      return true; // nur zum schnellen Testen
 	
 	} // end exitApplication
 
