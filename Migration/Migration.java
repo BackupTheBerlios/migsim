@@ -10,7 +10,7 @@ import javax.swing.*;
 
 public class Migration implements ActionListener {
 
-	private static final int DIM = 0;
+	private static final int MATRIX = 0;
 	private static final int BLACK = 1;
 	private static final int WHITE = 2;
 	private static final int RED = 3;
@@ -21,7 +21,8 @@ public class Migration implements ActionListener {
 	private JButton Reset;
 	private JButton Exit;
 	private JLabel Headline;
-	private JPanel MainPanel;
+	private JScrollPane ScrollPanel;
+	private JPanel PagePanel;
 	private GridBagLayout Layout;
 	private	GridBagConstraints GBC;
 	private Vector Settings;
@@ -56,8 +57,8 @@ public class Migration implements ActionListener {
 		Headline.setFont(new Font("Arial", Font.BOLD, 18));
 		Headline.setForeground(new Color(0,0,100));
 		
-		Layout = new GridBagLayout();
-		GBC = new GridBagConstraints();
+		GridBagLayout Layout = new GridBagLayout();
+		GridBagConstraints GBC = new GridBagConstraints();
 		GBC.fill = GridBagConstraints.BOTH;
 		Layout.setConstraints(Headline, GBC);
 
@@ -88,8 +89,7 @@ public class Migration implements ActionListener {
 		Exit.setEnabled(false);
 		GBC.gridy = row++;
 		Layout.setConstraints(Exit, GBC);
-		
-		
+				
 		Reset = new JButton("Reset");	// erzeugt den Reset-Button
 		Reset.setPreferredSize(new Dimension(90,25));
 		Reset.addActionListener(this);
@@ -105,13 +105,13 @@ public class Migration implements ActionListener {
 		JPanel South = new JPanel();		// erzeugt den unteren Rand
 		South.setPreferredSize(new Dimension(500,50));
 
-		MainPanel = new JPanel();	// erzeugt das Hauptanzeigefenster in der Mitte des Frames
-		MainPanel.setBackground(new Color(255,255,230));
-		
+		ScrollPanel = new JScrollPane();	// erzeugt das Hauptanzeigefenster in der Mitte des Frames
+		ScrollPanel.setBackground(new Color(255,255,230));
+				
 		Frame.getContentPane().add(North,BorderLayout.NORTH);	// fügt alle Komponenten dem Frame hinzu
 		Frame.getContentPane().add(East,BorderLayout.EAST);
 		Frame.getContentPane().add(West,BorderLayout.WEST);
-		Frame.getContentPane().add(MainPanel,BorderLayout.CENTER);
+		Frame.getContentPane().add(ScrollPanel,BorderLayout.CENTER);
 		Frame.getContentPane().add(South,BorderLayout.SOUTH);
 
 		Toolkit Kit = Toolkit.getDefaultToolkit();
@@ -131,7 +131,7 @@ public class Migration implements ActionListener {
 	} // end ASP_Selection (constructor)
 
 	
-	
+
 	/**
 	 * Implements the ActionListener for the frame components.
 	 * @param AE
@@ -140,8 +140,10 @@ public class Migration implements ActionListener {
 		
 		setWaitCursor();
 
-		if (AE.getSource() == Help) {
-			
+		if (AE.getSource() == Exit) {
+			if (exitApplication()) {
+				System.exit(0);
+			}
 		}
 
 		setDefaultCursor();
@@ -175,143 +177,119 @@ public class Migration implements ActionListener {
 		Layout = new GridBagLayout();
 		GBC = new GridBagConstraints();
 		GBC.fill = GridBagConstraints.BOTH;
-		JPanel PagePanel = new JPanel(Layout);
+		PagePanel = new JPanel(Layout);
 		PagePanel.setBackground(new Color(255,255,230));
-		JLabel ItemLabel;
-		
+
+		String Item = "Größe der Feldermatrix";
+		String Hint = "(10 \u2264 Wert \u2264 100)";
+		String Comp = "TextField";
+		String Value = "10";
+		String Name = "Matrix";
 		int row = 0;
-		ItemLabel = new JLabel("Größe der Feldermatrix:");
-		ItemLabel.setHorizontalAlignment(JLabel.LEFT);
-		ItemLabel.setFont(new Font("Arial", Font.BOLD, 13));
-		
-		GBC.gridx = 0;
-		GBC.gridy = row;
-		GBC.insets = getInsets(row, "Label");
-		
-		
-		final JTextField TField = new JTextField("10");	// "final" notwendig für focusGained() Methode
-		TField.setFont(new Font("Arial", Font.PLAIN, 13));
-		TField.addFocusListener(new FocusAdapter() {	// selectiert den Inhalt sobald der Cursor auf dem Feld steht
-		 	public void focusGained (FocusEvent FE){
-				TField.selectAll();
-		  	}
-		});
-		TField.setPreferredSize(new Dimension(30, 25));
-		TField.setHorizontalAlignment(JTextField.RIGHT);
-		GBC.gridx = GridBagConstraints.RELATIVE;
-		
-		GBC.insets = getInsets(row, "Field");
-		Layout.setConstraints(TField, GBC);
-		PagePanel.add(TField);
-		
-		MainPanel.removeAll();
-		MainPanel.repaint();
-		MainPanel.add(PagePanel);
+		setComponents(Item, Hint, Comp, Value, Name, row);
+
+		Item = "Anzahl Felder 'schwarz'";
+		Hint = "(max. 6 Felder)";
+		Comp = "TextField";
+		Value = "1";
+		Name = "Black";
+		row++;
+		setComponents(Item, Hint, Comp, Value, Name, row);
+
+		Item = "Anzahl Felder 'weiß'";
+		Hint = "(max. 6 Felder)";
+		Comp = "TextField";
+		Value = "1";
+		Name = "White";
+		row++;
+		setComponents(Item, Hint, Comp, Value, Name, row);
+
+		Item = "Anzahl Felder 'rot'";
+		Hint = "(max. 6 Felder)";
+		Comp = "TextField";
+		Value = "1";
+		Name = "Red";
+		row++;
+		setComponents(Item, Hint, Comp, Value, Name, row);
+
+		Item = "Anzahl Felder 'gelb'";
+		Hint = "(max. 6 Felder)";
+		Comp = "TextField";
+		Value = "1";
+		Name = "Yellow";
+		row++;
+		setComponents(Item, Hint, Comp, Value, Name, row);
+
+		setPagePanel(PagePanel);
 		
 	} // end showSettings
-	
-	
 
+	
+	
 	/**
-	 * Setzt die J-Komponenten auf die aktuelle Seite.
-	 * @param fontsize
-	 * @param Cat
+	 * Setzt die Komponenten auf die aktuelle Seite.
 	 * @param Item
-	 * @param TypeArray
-	 * @param ValueArray
-	 * @param HintArray
+	 * @param Hint
+	 * @param Comp
+	 * @param Value
+	 * @param Name
 	 * @param row
 	 **/
-	/*		public void setComponents(int fontsize, String Cat, String Item, String[] TypeArray, 
-							  String[] ValueArray, String[] HintArray, int row) {
+	public void setComponents(String Item, String Hint, String Comp, String Value, String Name, int row) {
+		
+		JLabel ItemLabel = new JLabel(Item + ":");
+		ItemLabel.setFont(new Font("Arial", Font.BOLD, 15));
+		ItemLabel.setBackground(new Color(255,255,230));
 
-		JLabel ItemLabel = new JLabel(Item);
-		ItemLabel = new JLabel(Item + ":");
-		ItemLabel.setHorizontalAlignment(JLabel.LEFT);
-		ItemLabel.setFont(new Font("Arial", Font.BOLD, fontsize));
-		GBC.fill = GridBagConstraints.BOTH;
-		GBC.gridx = 0;
 		GBC.gridy = row;
 		GBC.insets = getInsets(row, "Label");
 		Layout.setConstraints(ItemLabel, GBC);
 		PagePanel.add(ItemLabel);
+		
+		if (Comp.equalsIgnoreCase("TextField")) {
+			final JTextField TField = new JTextField(Value); // "final" ist notwendig für die focusGained()-Methode
+			TField.setName(Name);
+			TField.setFont(new Font("Arial", Font.PLAIN, 13));
+			TField.setPreferredSize(new Dimension(40, 25));
+			TField.setHorizontalAlignment(JTextField.RIGHT);
+			TField.addFocusListener(new FocusAdapter() { // Selectiert den Inhalt des Textfeldes sobald es angeklickt wird
+				public void focusGained (FocusEvent FE){
+					TField.selectAll();
+				}
+			});
 
-		for (int i = 0; i < TypeArray.length; i++) {
-			String Type = TypeArray[i];
-			String Hint = HintArray[i];
-			if (Type.equalsIgnoreCase("Boolean")) {
-				JCheckBox CheckBox = new JCheckBox(Hint);
-				CheckBox.setName(Cat + "," + convertString(Item, true));
-				CheckBox.setFont(new Font("Arial", Font.PLAIN, 13));
-				CheckBox.setBackground(new Color(255,255,230));
-				
-				if (ValueArray != null) {
-					CheckBox.setSelected(new Boolean(ValueArray[i]).booleanValue());
-				}
-				
-				GBC.gridx = GridBagConstraints.RELATIVE;
-				GBC.insets = getInsets(row, "Box");
-				Layout.setConstraints(CheckBox, GBC);
-				PagePanel.add(CheckBox);
-			}
-			else if (Type.equalsIgnoreCase("MaxCosts")) {
-				Hint = formatValue(Hint, false);
-				JLabel MaxCosts = new JLabel("(max. " + Hint + " " + CURRENCY + ")");
-				MaxCosts.setHorizontalAlignment(JLabel.RIGHT);
-				MaxCosts.setFont(new Font("Arial", Font.BOLD, 11));
-				MaxCosts.setBackground(new Color(255,255,230));
-				GBC.gridx = GridBagConstraints.RELATIVE;
-				GBC.insets = getInsets(row, "Field");
-				Layout.setConstraints(MaxCosts, GBC);
-				PagePanel.add(MaxCosts);				
-			}
-			else {
-				final JTextField TextField = new JTextField();	// "final" necessary for focusGained() method
-				TextField.setName(Cat + "," + convertString(Item, true)); 
-				TextField.setText(ValueArray[i]);
+			GBC.gridx = GridBagConstraints.RELATIVE;
+			GBC.insets = getInsets(row, "Field");
+			Layout.setConstraints(TField, GBC);
+			PagePanel.add(TField);
+		}
 
-				if (Item.equalsIgnoreCase("Provider Name") || Item.endsWith("Property Name") ||
-					Item.endsWith("Service Name")) {
-					TextField.setPreferredSize(new Dimension(170, 25));
-					TextField.setHorizontalAlignment(JTextField.LEFT);
-				}
-				else {
-					TextField.setPreferredSize(new Dimension(60, 25));
-					TextField.setHorizontalAlignment(JTextField.RIGHT);
-				}
-				TextField.setFont(new Font("Arial", Font.PLAIN, 13));
-				TextField.addFocusListener(new FocusAdapter() {	// selects all if focus gained
-				 	public void focusGained (FocusEvent FE){
-						TextField.selectAll();
-				  	}
-				});
+		JLabel HintLabel = new JLabel(Hint);
+		HintLabel.setFont(new Font("Arial", Font.PLAIN, 13));
+		HintLabel.setBackground(new Color(255,255,230));
 
-				GBC.fill = GridBagConstraints.HORIZONTAL;
-				if (Item.equalsIgnoreCase("Provider Name")) {
-					GBC.gridx = 3;
-					GBC.gridwidth = 2;
-				}
-				else {
-					GBC.gridx = GridBagConstraints.RELATIVE;
-				}
-				GBC.insets = getInsets(row, "Field");
-				Layout.setConstraints(TextField, GBC);
-				PagePanel.add(TextField);
-
-				if (!Item.equalsIgnoreCase("Provider Name")) {
-					JLabel HintLabel = new JLabel(Hint);
-					HintLabel.setFont(new Font("Arial", Font.PLAIN, 13));
-					GBC.gridx = GridBagConstraints.RELATIVE;
-					GBC.insets = getInsets(row, "Hint");
-					Layout.setConstraints(HintLabel, GBC);
-					PagePanel.add(HintLabel);
-				}
-			}
-		} // end for(i)
+		GBC.gridx = GridBagConstraints.RELATIVE;
+		GBC.insets = getInsets(row, "Hint");
+		Layout.setConstraints(HintLabel, GBC);
+		PagePanel.add(HintLabel);
 		
 	} // end setComponents
 	
-*/	
+	
+	
+	/**
+	 * Setzt das übergebene PagePanel in den Frame.
+	 * @param PagePanel  
+	 */
+	public void setPagePanel(JPanel PagePanel) {
+	
+		ScrollPanel.getViewport().removeAll();
+		ScrollPanel.getViewport().add(PagePanel);
+		ScrollPanel.getViewport().validate();
+					
+	} // end setPagePanel
+
+
 	
 	/**
 	 * Gibt die Abstände zwischen den J-Komponenten zurück.    
@@ -434,7 +412,7 @@ public class Migration implements ActionListener {
 	 */
 	public void setActivity() {
 
-		Help.setEnabled(true);
+		Exit.setEnabled(true);
 		
 	} // end setActivity
 
