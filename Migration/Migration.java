@@ -1,6 +1,7 @@
 import java.awt.*;
 import java.awt.event.*;
 import java.util.*;
+
 import javax.swing.*;
 
 
@@ -10,6 +11,12 @@ import javax.swing.*;
 
 public class Migration implements ActionListener {
 
+	private static final int ERROR = -99;
+	
+	private static final int SETUP = 0;
+	private static final int START = 1;
+	private static final int END = 2;
+	
 	private static final int MATRIX = 0;
 	private static final int BLACK = 1;
 	private static final int WHITE = 2;
@@ -20,13 +27,15 @@ public class Migration implements ActionListener {
 	private JButton Help;
 	private JButton Reset;
 	private JButton Exit;
+	private JButton Next;
 	private JLabel Headline;
 	private JScrollPane ScrollPanel;
 	private JPanel PagePanel;
+	private JTextField ErrorField;
 	private GridBagLayout Layout;
 	private	GridBagConstraints GBC;
 	private Vector Settings;
-	
+	int currentPage;
 	
 	/**
 	 * Der Konstruktor erzeugt den Anwendungsframe mit allen Komponenten.
@@ -97,10 +106,18 @@ public class Migration implements ActionListener {
 		GBC.gridy = row++;
 		Layout.setConstraints(Reset, GBC);
 		
+		Next = new JButton("Weiter");	// erzeugt den Weiter-Button
+		Next.setPreferredSize(new Dimension(90,25));
+		Next.addActionListener(this);
+		Next.setEnabled(false);
+		GBC.gridy = row++;
+		Layout.setConstraints(Next, GBC);
+
 		JPanel East = new JPanel(Layout);	// erzeugt den rechten Rand mit allen Buttons
 		East.add(Help);
 		East.add(Exit);
 		East.add(Reset);
+		East.add(Next);
 		
 		JPanel South = new JPanel();		// erzeugt den unteren Rand
 		South.setPreferredSize(new Dimension(500,50));
@@ -131,6 +148,22 @@ public class Migration implements ActionListener {
 	} // end ASP_Selection (constructor)
 
 	
+	
+	/**
+	 * Initialisiert die Anwendung.
+	 */
+	private void initialize() {
+	
+		Settings = new Vector();
+		for (int i = 0; i <= YELLOW; i++) {
+			Settings.addElement(new Integer(0));
+		}
+		currentPage = SETUP;
+		showPage();
+		
+	} // end initialize()
+
+	
 
 	/**
 	 * Implements the ActionListener for the frame components.
@@ -146,6 +179,10 @@ public class Migration implements ActionListener {
 			}
 		}
 
+		else if (AE.getSource() == Next) {
+			currentPage++;
+				showPage();
+		}
 		setDefaultCursor();
 
 	} // end actionPerformed
@@ -153,24 +190,29 @@ public class Migration implements ActionListener {
 	
 	
 	/**
-	 * Initialisiert die Anwendung.
-	 */
-	private void initialize() {
-	
-		Settings = new Vector();
-		for (int i = 0; i <= YELLOW; i++) {
-			Settings.addElement(new Integer(0));
-		}
-		showSettings();
-		
-	} // end initialize()
+ 	 * Zeigt die entsprechende Seite an.  
+ 	 */
+	private void showPage() {
 
+		switch (currentPage) {
+
+			case SETUP:
+				showSetupPage();
+				break;
+
+			case START:
+				System.out.println(Settings);
+//				showStartPage();
+				break;
+		}
+	} // end showPage()
 	
+
 	
 	/**
 	 * Generiert die Einstellungsseite.  
 	 */
-	private void showSettings() {
+	private void showSetupPage() {
 
 		setHeadlineText("Bitte die Initialisierungswerte festlegen:");
 	
@@ -254,7 +296,18 @@ public class Migration implements ActionListener {
 			TField.setHorizontalAlignment(JTextField.RIGHT);
 			TField.addFocusListener(new FocusAdapter() { // Selectiert den Inhalt des Textfeldes sobald es angeklickt wird
 				public void focusGained (FocusEvent FE){
+					if (ErrorField != null) {
+						JTextField TempField = ErrorField;
+						ErrorField = null;
+						TempField.grabFocus();
+					}
 					TField.selectAll();
+				}
+				public void focusLost (FocusEvent FE){
+					if (!changeValue(TField.getName(), TField.getText())) {
+						ErrorField = TField;
+					}
+					
 				}
 			});
 
@@ -289,7 +342,58 @@ public class Migration implements ActionListener {
 					
 	} // end setPagePanel
 
+	
 
+	/**
+	 * Ändert die Eingabewerte.    
+	 * @param Name
+	 * @param Value
+	 * @return boolean
+	 **/
+	private boolean changeValue(String Name, String Value) {
+		
+		if (Name.equals("Matrix")) {
+			String Item = "Matrixgröße";
+			int value = getIntValue(Value, Item);
+			if (value != ERROR) {
+				if (value >= 10 && value <= 100) {
+					return true;
+				}
+				else {
+					messageHandling("MatrixSizeError", Item);
+				}
+			}
+		}
+		else {
+			return true;
+		}
+		return false;
+		
+	} // end changeValues
+	
+	
+	
+	/**
+	 * Gibt für den übergebenen String-Wert den Integer-Wert zurück.    
+	 * @param Value
+	 * @param Item
+	 * @return value
+	 **/
+	private int getIntValue(String Value, String Item) {
+
+		try {
+			int value = Integer.parseInt(Value);
+			return value;
+		}
+		catch (Exception Ex) {
+			messageHandling("NotNumber", Item);
+			return ERROR;
+		}		
+		
+		
+	} // end getIntValue
+
+	
 	
 	/**
 	 * Gibt die Abstände zwischen den J-Komponenten zurück.    
@@ -363,8 +467,16 @@ public class Migration implements ActionListener {
 			Message = "Möchten Sie die Anwendung wirklich beenden?";
 			input = showMessage("Exit", "Confirmation", Message);
 		}
-		return input;		
-
+		else if (Cause.equalsIgnoreCase("NotNumber")) {
+			Message = "Im Feld \"" + Item + "\" sind nur natürliche Zahlen zugelassen!";
+			showMessage("Error", "Error", Message); 
+		}
+		else if (Cause.equalsIgnoreCase("MatrixSizeError")) {
+			Message = "Im Feld \"" + Item + "\" sind nur natürliche Zahlen zwischen 10 und 100 zugelassen!";
+			showMessage("Error", "Error", Message); 
+		}
+		return input;
+		
 	} // messageHandling
 
 	
@@ -404,6 +516,26 @@ public class Migration implements ActionListener {
 		return input;
 	
 	} // end showMessage
+
+	
+	
+	/**
+	 * Gibt die Komponente mit dem spezifierten Namen zurück.    
+	 * @return Component
+	 **/
+	private Component getComponent(String Name) {
+
+		Component[] ComponentArray = PagePanel.getComponents();
+		for (int i = 0; i < ComponentArray.length; i++) {
+			if (ComponentArray[i].getName() != null) {
+				if (ComponentArray[i].getName().equals(Name)) {
+					return ComponentArray[i];
+				}
+			}
+		}
+		return null;
+
+	} // end getComponent
 	
 	
 	
@@ -413,6 +545,7 @@ public class Migration implements ActionListener {
 	public void setActivity() {
 
 		Exit.setEnabled(true);
+		Next.setEnabled(true);
 		
 	} // end setActivity
 
