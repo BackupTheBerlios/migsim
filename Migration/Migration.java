@@ -371,7 +371,7 @@ public class Migration implements ActionListener {
 			Positions.addElement(PositionSet);
 		}
 		
-		int black = Integer.parseInt(Settings.elementAt(BLACK).toString());
+		int black = Integer.parseInt(Settings.elementAt(BLACK).toString());     // Settings liest die Anzahl der schwarzen Elemente
 		for (int i = 0; i < black; i++) {
 			int Position[] = getRandomPosition(Positions, Randomizer);
 			((Vector)Positions.elementAt(Position[ROW])).setElementAt("B?", Position[COL]);

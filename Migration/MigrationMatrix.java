@@ -61,7 +61,7 @@ public class MigrationMatrix {
 
 		for (int i = 0; i < ColumnNames.size(); i++ ) {
 			Column = Matrix.getColumnModel().getColumn(i);
-			Column.setCellRenderer(CellRenderer);
+			//Column.setCellRenderer(CellRenderer);
 			Column.setHeaderRenderer(HRenderer);
 			Column.setPreferredWidth(25);
 		}
@@ -218,7 +218,7 @@ public class MigrationMatrix {
 			}
 		} // end for(i)
 	
-		if (optValue != value) {
+		if (optValue != value) {         // wenn die optimalste Postion schon erreicht ist
 			moved = true;
 			Element = Element.substring(0,1) + "#";
 			((Vector)Positions.elementAt(row)).setElementAt("", col);
@@ -400,7 +400,7 @@ public class MigrationMatrix {
 			
 			if (((Vector)Positions.elementAt(row)).elementAt(col).toString().startsWith("B")) {
 				setForeground(Color.BLACK);
-				RTable.setValueAt("\u25cf", row, col);
+				RTable.setValueAt("\u25cf", row, col);  // trägt den Punkt in die Tabelle und Data ein, weil die Grundlage für die Tabelle der Data ist.
 			}
 			if (((Vector)Positions.elementAt(row)).elementAt(col).toString().startsWith("W")) {
 				setForeground(Color.WHITE);
