@@ -1,6 +1,5 @@
 import java.awt.*;
 import java.awt.event.MouseEvent;
-import java.text.DecimalFormat;
 import java.util.*;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
