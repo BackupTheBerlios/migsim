@@ -1,6 +1,7 @@
 import java.awt.*;
 import java.awt.event.*;
 import java.util.*;
+
 import javax.swing.*;
 
 
@@ -36,6 +37,7 @@ public class Migration implements ActionListener {
 	private GridBagLayout Layout;
 	private	GridBagConstraints GBC;
 	private Vector Settings;
+	private Vector Positions;
 	private Random Randomizer;
 	int currentPage;
 	boolean error;
@@ -332,46 +334,51 @@ public class Migration implements ActionListener {
 	
 		setHeadlineText("Simulationsmatrix:");
 		Vector Data = new Vector();
+		Vector Positions = new Vector();
 		Randomizer = new Random();
 		
 		int size = Integer.parseInt(Settings.elementAt(MATRIX).toString());
 		for (int i = 0; i < size; i++) {
 			Vector DataSet = new Vector();
+			Vector PositionSet = new Vector();
 			for (int j = 0; j < size; j++) {	
 				DataSet.addElement("");
+				PositionSet.addElement("");
 			}
 			Data.addElement(DataSet);
+			Positions.addElement(PositionSet);
 		}
 		
 		int black = Integer.parseInt(Settings.elementAt(BLACK).toString());
 		for (int i = 0; i < black; i++) {
-			int Position[] = getRandomPosition(Data, Randomizer);
-			((Vector)Data.elementAt(Position[ROW])).setElementAt("B", Position[COL]);
+			int Position[] = getRandomPosition(Positions, Randomizer);
+			((Vector)Positions.elementAt(Position[ROW])).setElementAt("B", Position[COL]);
 		}
 
 		int white = Integer.parseInt(Settings.elementAt(WHITE).toString());
 		for (int i = 0; i < white; i++) {
-			int Position[] = getRandomPosition(Data, Randomizer);
-			((Vector)Data.elementAt(Position[ROW])).setElementAt("W", Position[COL]);
+			int Position[] = getRandomPosition(Positions, Randomizer);
+			((Vector)Positions.elementAt(Position[ROW])).setElementAt("W", Position[COL]);
 		}
 
 		int red = Integer.parseInt(Settings.elementAt(RED).toString());
 		for (int i = 0; i < red; i++) {
-			int Position[] = getRandomPosition(Data, Randomizer);
-			((Vector)Data.elementAt(Position[ROW])).setElementAt("R", Position[COL]);
+			int Position[] = getRandomPosition(Positions, Randomizer);
+			((Vector)Positions.elementAt(Position[ROW])).setElementAt("R", Position[COL]);
 		}
 
 		int yellow = Integer.parseInt(Settings.elementAt(YELLOW).toString());
 		for (int i = 0; i < yellow; i++) {
-			int Position[] = getRandomPosition(Data, Randomizer);
-			((Vector)Data.elementAt(Position[ROW])).setElementAt("Y", Position[COL]);
+			int Position[] = getRandomPosition(Positions, Randomizer);
+			((Vector)Positions.elementAt(Position[ROW])).setElementAt("Y", Position[COL]);
 		}
 		
 		Vector ColumnNames = new Vector();
 		for (int i = 1; i <= size; i++) {
 			ColumnNames.addElement(String.valueOf(i));
 		}
-		MigrationMatrix Matrix = new MigrationMatrix(this, Data, ColumnNames);
+		
+		MigrationMatrix Matrix = new MigrationMatrix(this, Data, ColumnNames, Positions);
 		ScrollPanel.getViewport().removeAll();
 		ScrollPanel.getViewport().add(Matrix.getTable());
 		ScrollPanel.validate();
@@ -387,13 +394,13 @@ public class Migration implements ActionListener {
 	 * @param Randomizer
 	 * @return Position
 	 **/
-	private int[] getRandomPosition(Vector Data, Random Randomizer) {
+	private int[] getRandomPosition(Vector Positions, Random Randomizer) {
 		
 		int size = Integer.parseInt(Settings.elementAt(MATRIX).toString());
 		int randomRow = Randomizer.nextInt(size);
 		int randomCol = Randomizer.nextInt(size);
 		
-		while (!((Vector)Data.elementAt(randomRow)).elementAt(randomCol).toString().equals("")) {
+		while (!((Vector)Positions.elementAt(randomRow)).elementAt(randomCol).toString().equals("")) {
 			randomRow = Randomizer.nextInt(size);
 			randomCol = Randomizer.nextInt(size);
 		}

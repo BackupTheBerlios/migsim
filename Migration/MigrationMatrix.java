@@ -15,6 +15,7 @@ public class MigrationMatrix {
 	private DefaultTableModel MatrixTableModel;
 	private JList RowHeader;
 	private Vector ColumnNames;
+	private Vector Positions;
 	private	Vector Data;
 
 	
@@ -24,9 +25,10 @@ public class MigrationMatrix {
 	 * @param Data
 	 * @param ColumnNames
 	 */		
-	public MigrationMatrix(Migration NewMig, Vector Data, Vector ColumnNames)  {
+	public MigrationMatrix(Migration NewMig, Vector Data, Vector ColumnNames, Vector NewPositions)  {
 		
 		Mig = NewMig;
+		Positions = NewPositions;
 		MatrixTableModel = new DefaultTableModel(Data, ColumnNames) {
 			public boolean isCellEditable(int row, int column) { 
 				return false;	// readonly setting for all cells 
@@ -70,7 +72,7 @@ public class MigrationMatrix {
 		// verhindert das Zell-Rendering bei Mausbewegungen
 		ToolTipManager.sharedInstance().unregisterComponent(Matrix); 
 		ToolTipManager.sharedInstance().unregisterComponent(Matrix.getTableHeader());
-
+		
 	} // end MigrationMatrix (constructor)
 
 	
@@ -186,7 +188,9 @@ public class MigrationMatrix {
 	} // end class RowHeaderRenderer
 
 	
-	
+	/**
+	 * Definiert das Aussehen der einzelnen Zellen der Matrix.
+	 **/	
 	public class TableCellRenderer extends DefaultTableCellRenderer {
 		
 		/**
@@ -216,10 +220,25 @@ public class MigrationMatrix {
 
 			Component RComponent = super.getTableCellRendererComponent(RTable, Value, isSelected, hasFocus, row, col);
 			String FontName = getFont().getFontName();
-				
-			setFont(new Font(FontName, Font.PLAIN, 12));			
-			setForeground(Color.black);	
-			setBackground(new Color(255,255,230));
+			setFont(new Font(FontName, Font.BOLD, 20));
+			setBackground(new Color(180,180,180));
+			
+			if (((Vector)Positions.elementAt(row)).elementAt(col).toString().equals("B")) {
+				setForeground(Color.BLACK);
+				RTable.setValueAt("\u25cf", row, col);
+			}
+			if (((Vector)Positions.elementAt(row)).elementAt(col).toString().equals("W")) {
+				setForeground(Color.WHITE);
+				RTable.setValueAt("\u25cf", row, col);
+			}
+			if (((Vector)Positions.elementAt(row)).elementAt(col).toString().equals("R")) {
+				setForeground(Color.RED);
+				RTable.setValueAt("\u25cf", row, col);
+			}
+			if (((Vector)Positions.elementAt(row)).elementAt(col).toString().equals("Y")) {
+				setForeground(Color.YELLOW);
+				RTable.setValueAt("\u25cf", row, col);
+			}
 
 			return RComponent;
 
