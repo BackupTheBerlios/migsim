@@ -61,7 +61,7 @@ public class MigrationMatrix {
 
 		for (int i = 0; i < ColumnNames.size(); i++ ) {
 			Column = Matrix.getColumnModel().getColumn(i);
-			//Column.setCellRenderer(CellRenderer);
+			Column.setCellRenderer(CellRenderer);
 			Column.setHeaderRenderer(HRenderer);
 			Column.setPreferredWidth(25);
 		}
