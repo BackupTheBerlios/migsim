@@ -42,8 +42,9 @@ public class Migration implements ActionListener {
 	private Random Randomizer;
 	private MigrationMatrix Matrix;
 	int currentPage;
+	int period;
 	boolean error;
-
+	
 	
 	
 	/**
@@ -186,6 +187,7 @@ public class Migration implements ActionListener {
 			Settings.addElement("0");
 		}
 		error = false;
+		period = 0;
 		currentPage = SETUP;
 		showPage();
 		setActivity(); // setzt die Button-Aktivität
@@ -221,6 +223,7 @@ public class Migration implements ActionListener {
 				initialize();
 			}
 			else if (currentPage == START) {
+				resetPeriod();
 				showStartPage();
 			}
 		}
@@ -246,6 +249,7 @@ public class Migration implements ActionListener {
 				}
 			}
 			else {
+				period++;
 				Matrix.changePeriod();
 			}
 		}
@@ -934,6 +938,29 @@ public class Migration implements ActionListener {
 		return null;
 
 	} // end getComponent
+
+	
+	
+	/**
+	 * Gibt die aktuelle Peride zurück.    
+	 * @return period
+	 **/
+	public int getPeriod() {
+
+		return period;
+
+	} // end getPeriod
+	
+	
+	
+	/**
+	 * Resetet die Periode.    
+	 **/
+	public void resetPeriod() {
+
+		period = 0;;
+
+	} // end resetPeriod
 	
 	
 	

@@ -147,6 +147,7 @@ public class MigrationMatrix {
 				Mig.getScrollPanel().validate();
 			}
 		}
+		Mig.resetPeriod();
 	
 	} // end setElement
 	
@@ -156,6 +157,8 @@ public class MigrationMatrix {
 	 */
 	public boolean changePeriod() {
 	
+		System.out.println("\n" + Mig.getPeriod() + " Periode:");
+		System.out.println("----------");
 		for (int row = 0; row < Positions.size(); row++) {
 			Vector PositionSet = (Vector)Positions.elementAt(row);
 			for (int col = 0; col < PositionSet.size(); col++) {
@@ -166,6 +169,9 @@ public class MigrationMatrix {
 				}
 			}
 		}
+		setMoveable(Positions.size());
+		// System.out.println(Positions);
+		// System.out.println(Data);
 		return false;
 		
 	} // end changePeriod 
@@ -199,7 +205,9 @@ public class MigrationMatrix {
 								optRow = i;
 								optCol = j;
 								// Kontrollausgabe
-								System.out.println("O-Werte(" + row + ";" + col + "#" + value + ")   N-Werte(" + optRow + ";" + optCol + "#" + optValue + ")");
+								String Output = "Alt: (Farbe: " + Element.substring(0,1) + "  Pos: " + row + ";" + col + "  Wert: " + value + ")";
+								Output += "  ->   Neu: (Farbe: " + Element.substring(0,1) + "  Pos: " + optRow + ";" + optCol + "  Wert: " + optValue + ")";
+								System.out.println(Output);
 							}
 						}
 					}
@@ -212,10 +220,32 @@ public class MigrationMatrix {
 			((Vector)Data.elementAt(row)).setElementAt("", col);
 			((Vector)Positions.elementAt(row)).setElementAt("", col);
 			((Vector)Positions.elementAt(optRow)).setElementAt(Element, optCol);
+			Matrix.setValueAt("\u25cf", optRow, optCol);
 		}
 		
 	} // end setOptimalPosition
 
+
+	
+	/**
+	 * Markiert alle nicht leeren Zelle am Ende mit einem "?" 
+	 * (= Element kann sich in dieser Periode noch bewegen).
+	 * @param size 
+	 */
+	private void setMoveable(int size) {
+		
+		for (int row = 0; row < size; row++) {
+			Vector PositionSet = (Vector)Positions.elementAt(row);
+			for (int col = 0; col < size; col++) {
+				if (!PositionSet.elementAt(col).toString().equals("")) {
+					String Element = PositionSet.elementAt(col).toString();
+					Element = Element.substring(0,1) + "?";
+					PositionSet.setElementAt(Element, col);
+				}
+			} // end for(col)
+		} // for(row)
+
+	} // end setMoveable
 	
 	
 	

@@ -21,6 +21,9 @@ public class RulesBase {
 	 */	
 	public boolean isMoveable(int size, int row, int col) {
 		
+		if (((Vector)Positions.elementAt(row)).elementAt(col).toString().endsWith("#")) {
+			return false;
+		}
 		for (int i = row - 1; i < row + 2; i++) {
 			for (int j = col - 1; j < col + 2; j++) {
 				if (i >= 0 && j >= 0 && i < size && j < size) {
@@ -63,7 +66,7 @@ public class RulesBase {
 								value = value + 0;
 							}
 							else if (((Vector)Positions.elementAt(i)).elementAt(j).toString().startsWith("Y")) {
-								value = value - 1;
+								value = value + 1;
 							}
 						}
 						else if (Element.startsWith("W")) {
