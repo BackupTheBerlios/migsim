@@ -10,6 +10,12 @@ import javax.swing.*;
 
 public class Migration implements ActionListener {
 
+	private static final int DIM = 0;
+	private static final int BLACK = 1;
+	private static final int WHITE = 2;
+	private static final int RED = 3;
+	private static final int YELLOW = 4;
+	
 	private JFrame Frame;	
 	private JButton Help;
 	private JButton Reset;
@@ -18,10 +24,11 @@ public class Migration implements ActionListener {
 	private JPanel MainPanel;
 	private GridBagLayout Layout;
 	private	GridBagConstraints GBC;
+	private Vector Settings;
 	
 	
 	/**
-	 * Der Konstrukter erzeugt den Anwendungsframe mit allen Komponenten.
+	 * Der Konstruktor erzeugt den Anwendungsframe mit allen Komponenten.
 	 */
 	public Migration() {
 
@@ -148,11 +155,163 @@ public class Migration implements ActionListener {
 	 */
 	private void initialize() {
 	
-		setHeadlineText("Bitte die Initialisierungswerte festlegen:");
+		Settings = new Vector();
+		for (int i = 0; i <= YELLOW; i++) {
+			Settings.addElement(new Integer(0));
+		}
+		showSettings();
 		
 	} // end initialize()
 
 	
+	
+	/**
+	 * Generiert die Einstellungsseite.  
+	 */
+	private void showSettings() {
+
+		setHeadlineText("Bitte die Initialisierungswerte festlegen:");
+	
+		Layout = new GridBagLayout();
+		GBC = new GridBagConstraints();
+		GBC.fill = GridBagConstraints.BOTH;
+		JPanel PagePanel = new JPanel(Layout);
+		PagePanel.setBackground(new Color(255,255,230));
+		JLabel ItemLabel;
+		
+		int row = 0;
+		ItemLabel = new JLabel("Größe der Feldermatrix:");
+		ItemLabel.setHorizontalAlignment(JLabel.LEFT);
+		ItemLabel.setFont(new Font("Arial", Font.BOLD, 13));
+		
+		GBC.gridx = 0;
+		GBC.gridy = row;
+		GBC.insets = getInsets(row, "Label");
+		
+		
+		final JTextField TField = new JTextField("10");	// "final" notwendig für focusGained() Methode
+		TField.setFont(new Font("Arial", Font.PLAIN, 13));
+		TField.addFocusListener(new FocusAdapter() {	// selectiert den Inhalt sobald der Cursor auf dem Feld steht
+		 	public void focusGained (FocusEvent FE){
+				TField.selectAll();
+		  	}
+		});
+		TField.setPreferredSize(new Dimension(30, 25));
+		TField.setHorizontalAlignment(JTextField.RIGHT);
+		GBC.gridx = GridBagConstraints.RELATIVE;
+		
+		GBC.insets = getInsets(row, "Field");
+		Layout.setConstraints(TField, GBC);
+		PagePanel.add(TField);
+		
+		MainPanel.removeAll();
+		MainPanel.repaint();
+		MainPanel.add(PagePanel);
+		
+	} // end showSettings
+	
+	
+
+	/**
+	 * Setzt die J-Komponenten auf die aktuelle Seite.
+	 * @param fontsize
+	 * @param Cat
+	 * @param Item
+	 * @param TypeArray
+	 * @param ValueArray
+	 * @param HintArray
+	 * @param row
+	 **/
+	/*		public void setComponents(int fontsize, String Cat, String Item, String[] TypeArray, 
+							  String[] ValueArray, String[] HintArray, int row) {
+
+		JLabel ItemLabel = new JLabel(Item);
+		ItemLabel = new JLabel(Item + ":");
+		ItemLabel.setHorizontalAlignment(JLabel.LEFT);
+		ItemLabel.setFont(new Font("Arial", Font.BOLD, fontsize));
+		GBC.fill = GridBagConstraints.BOTH;
+		GBC.gridx = 0;
+		GBC.gridy = row;
+		GBC.insets = getInsets(row, "Label");
+		Layout.setConstraints(ItemLabel, GBC);
+		PagePanel.add(ItemLabel);
+
+		for (int i = 0; i < TypeArray.length; i++) {
+			String Type = TypeArray[i];
+			String Hint = HintArray[i];
+			if (Type.equalsIgnoreCase("Boolean")) {
+				JCheckBox CheckBox = new JCheckBox(Hint);
+				CheckBox.setName(Cat + "," + convertString(Item, true));
+				CheckBox.setFont(new Font("Arial", Font.PLAIN, 13));
+				CheckBox.setBackground(new Color(255,255,230));
+				
+				if (ValueArray != null) {
+					CheckBox.setSelected(new Boolean(ValueArray[i]).booleanValue());
+				}
+				
+				GBC.gridx = GridBagConstraints.RELATIVE;
+				GBC.insets = getInsets(row, "Box");
+				Layout.setConstraints(CheckBox, GBC);
+				PagePanel.add(CheckBox);
+			}
+			else if (Type.equalsIgnoreCase("MaxCosts")) {
+				Hint = formatValue(Hint, false);
+				JLabel MaxCosts = new JLabel("(max. " + Hint + " " + CURRENCY + ")");
+				MaxCosts.setHorizontalAlignment(JLabel.RIGHT);
+				MaxCosts.setFont(new Font("Arial", Font.BOLD, 11));
+				MaxCosts.setBackground(new Color(255,255,230));
+				GBC.gridx = GridBagConstraints.RELATIVE;
+				GBC.insets = getInsets(row, "Field");
+				Layout.setConstraints(MaxCosts, GBC);
+				PagePanel.add(MaxCosts);				
+			}
+			else {
+				final JTextField TextField = new JTextField();	// "final" necessary for focusGained() method
+				TextField.setName(Cat + "," + convertString(Item, true)); 
+				TextField.setText(ValueArray[i]);
+
+				if (Item.equalsIgnoreCase("Provider Name") || Item.endsWith("Property Name") ||
+					Item.endsWith("Service Name")) {
+					TextField.setPreferredSize(new Dimension(170, 25));
+					TextField.setHorizontalAlignment(JTextField.LEFT);
+				}
+				else {
+					TextField.setPreferredSize(new Dimension(60, 25));
+					TextField.setHorizontalAlignment(JTextField.RIGHT);
+				}
+				TextField.setFont(new Font("Arial", Font.PLAIN, 13));
+				TextField.addFocusListener(new FocusAdapter() {	// selects all if focus gained
+				 	public void focusGained (FocusEvent FE){
+						TextField.selectAll();
+				  	}
+				});
+
+				GBC.fill = GridBagConstraints.HORIZONTAL;
+				if (Item.equalsIgnoreCase("Provider Name")) {
+					GBC.gridx = 3;
+					GBC.gridwidth = 2;
+				}
+				else {
+					GBC.gridx = GridBagConstraints.RELATIVE;
+				}
+				GBC.insets = getInsets(row, "Field");
+				Layout.setConstraints(TextField, GBC);
+				PagePanel.add(TextField);
+
+				if (!Item.equalsIgnoreCase("Provider Name")) {
+					JLabel HintLabel = new JLabel(Hint);
+					HintLabel.setFont(new Font("Arial", Font.PLAIN, 13));
+					GBC.gridx = GridBagConstraints.RELATIVE;
+					GBC.insets = getInsets(row, "Hint");
+					Layout.setConstraints(HintLabel, GBC);
+					PagePanel.add(HintLabel);
+				}
+			}
+		} // end for(i)
+		
+	} // end setComponents
+	
+*/	
 	
 	/**
 	 * Gibt die Abstände zwischen den J-Komponenten zurück.    
@@ -267,7 +426,7 @@ public class Migration implements ActionListener {
 		return input;
 	
 	} // end showMessage
-
+	
 	
 	
 	/**
