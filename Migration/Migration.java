@@ -5,8 +5,7 @@ import javax.swing.*;
 
 
 /**
- * @author Harry Arenbeck
- * @version 1.8	08/11/04
+ * @author Lan Nguyen
  */
 
 public class Migration implements ActionListener {
