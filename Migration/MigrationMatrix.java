@@ -216,7 +216,6 @@ public class MigrationMatrix {
 														boolean hasFocus, int row, int col) {
 
 			Component RComponent = super.getTableCellRendererComponent(RTable, Value, isSelected, hasFocus, row, col);
-			DecimalFormat ResultFormat = new DecimalFormat(ASP_Selection.NUMBERFORMAT);
 			String FontName = getFont().getFontName();
 				
 			setFont(new Font(FontName, Font.PLAIN, 12));			
