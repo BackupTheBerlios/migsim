@@ -116,20 +116,6 @@ public class RulesBase {
 		
 	} // evalueateCurrentPosition
 	
-	
-	
-	/**
-	 * Prüft, ob das Element an der übergebenen Position, zu einer Position
-	 * mit mehr gleichen Nachbarn bewegt werden kann.
-	 * @param row
-	 * @param col
-	 * @return boolean
-	 */	
-	public boolean sameNeighbors(int row, int col) {
-		
-		return false;
-		
-	} // sameNeighbors
 		
 	
 } // end class RulesBase

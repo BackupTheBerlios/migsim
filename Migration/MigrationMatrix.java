@@ -16,7 +16,6 @@ public class MigrationMatrix {
 	private JTable Matrix;
 	private DefaultTableModel MatrixTableModel;
 	private JList RowHeader;
-	private Vector ColumnNames;
 	private Vector Positions;
 	private	Vector Data;
 	
@@ -29,15 +28,16 @@ public class MigrationMatrix {
 	 * @param NewPositions
 	 * @param NewRules
 	 */		
-	public MigrationMatrix(Migration NewMig, Vector Data, Vector ColumnNames, 
+	public MigrationMatrix(Migration NewMig, Vector NewData, Vector ColumnNames, 
 						   Vector NewPositions, RulesBase NewRules)  {
 		
 		Mig = NewMig;
 		Rules = NewRules;
 		Positions = NewPositions;
+		Data = NewData;
 		MatrixTableModel = new DefaultTableModel(Data, ColumnNames) {
 			public boolean isCellEditable(int row, int column) { 
-				return false;	// readonly setting for all cells 
+				return false;	// Schreibschutz für alle Zellen 
 			}
 		};
 
@@ -192,12 +192,14 @@ public class MigrationMatrix {
 				for (int j = col - 1; j <= col + 1; j++) {
 					if (j >= 0 && j < Positions.size()) {
 						if (((Vector)Positions.elementAt(i)).elementAt(j).toString().equals("")) {
-							int newValue = Rules.evaluatePosition(Element, i, j, Positions.size());
+							//-1, da das neue Feld das aktuelle Feld bei der Bewertung als gleichfarbigen Nachbarn hat
+							int newValue = Rules.evaluatePosition(Element, i, j, Positions.size()) - 1;
 							if (optValue < newValue) {
 								optValue = newValue;
 								optRow = i;
 								optCol = j;
-								System.out.println("O-Werte(" + row + ";" + col + "#" + value + ")   N-Werte(" +optRow + ";" + optCol + "#" + optValue + ")");
+								// Kontrollausgabe
+								System.out.println("O-Werte(" + row + ";" + col + "#" + value + ")   N-Werte(" + optRow + ";" + optCol + "#" + optValue + ")");
 							}
 						}
 					}
@@ -207,6 +209,7 @@ public class MigrationMatrix {
 	
 		if (optValue != value) {
 			Element = Element.substring(0,1) + "#";
+			((Vector)Data.elementAt(row)).setElementAt("", col);
 			((Vector)Positions.elementAt(row)).setElementAt("", col);
 			((Vector)Positions.elementAt(optRow)).setElementAt(Element, optCol);
 		}
