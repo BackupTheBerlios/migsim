@@ -12,8 +12,7 @@ public class Migration implements ActionListener {
 
 	private static final int SETUP = 0;
 	private static final int START = 1;
-	private static final int END = 2;
-	
+		
 	private static final int MATRIX = 0;
 	private static final int BLACK = 1;
 	private static final int WHITE = 2;
@@ -41,6 +40,7 @@ public class Migration implements ActionListener {
 	private Vector Settings;
 	private Vector Positions;
 	private Random Randomizer;
+	private MigrationMatrix Matrix;
 	int currentPage;
 	boolean error;
 
@@ -226,22 +226,27 @@ public class Migration implements ActionListener {
 		}
 		
 		else if (AE.getSource() == Next) {
-			boolean valuesValid = true;
-			if (CurrentTField != null) {
-				if (!changeValue(CurrentTField.getName(), CurrentTField.getText())) {
-					CurrentTField.grabFocus();
-					valuesValid = false;
+			if (currentPage == SETUP) {
+				boolean valuesValid = true;
+				if (CurrentTField != null) {
+					if (!changeValue(CurrentTField.getName(), CurrentTField.getText())) {
+						CurrentTField.grabFocus();
+						valuesValid = false;
+					}
+				}
+				if (valuesValid) {
+					Settings.setElementAt(((JTextField)getComponent("Matrix")).getText(), MATRIX);
+					Settings.setElementAt(((JTextField)getComponent("Black")).getText(), BLACK);
+					Settings.setElementAt(((JTextField)getComponent("White")).getText(), WHITE);
+					Settings.setElementAt(((JTextField)getComponent("Red")).getText(), RED);
+					Settings.setElementAt(((JTextField)getComponent("Yellow")).getText(), YELLOW);
+					currentPage++;
+					showPage();
+					setActivity();
 				}
 			}
-			if (valuesValid) {
-				Settings.setElementAt(((JTextField)getComponent("Matrix")).getText(), MATRIX);
-				Settings.setElementAt(((JTextField)getComponent("Black")).getText(), BLACK);
-				Settings.setElementAt(((JTextField)getComponent("White")).getText(), WHITE);
-				Settings.setElementAt(((JTextField)getComponent("Red")).getText(), RED);
-				Settings.setElementAt(((JTextField)getComponent("Yellow")).getText(), YELLOW);
-				currentPage++;
-				showPage();
-				setActivity();
+			else {
+				Matrix.changePeriod();
 			}
 		}
 		setDefaultCursor();
@@ -255,16 +260,13 @@ public class Migration implements ActionListener {
  	 */
 	private void showPage() {
 
-		switch (currentPage) {
-
-			case SETUP:
-				showSetupPage();
-				break;
-
-			case START:
-				showStartPage();
-				break;
+		if (currentPage == SETUP) {
+			showSetupPage();
 		}
+		else {
+			showStartPage();
+		}
+
 	} // end showPage()
 	
 
@@ -361,33 +363,34 @@ public class Migration implements ActionListener {
 		int black = Integer.parseInt(Settings.elementAt(BLACK).toString());
 		for (int i = 0; i < black; i++) {
 			int Position[] = getRandomPosition(Positions, Randomizer);
-			((Vector)Positions.elementAt(Position[ROW])).setElementAt("B", Position[COL]);
+			((Vector)Positions.elementAt(Position[ROW])).setElementAt("B?", Position[COL]);
 		}
 
 		int white = Integer.parseInt(Settings.elementAt(WHITE).toString());
 		for (int i = 0; i < white; i++) {
 			int Position[] = getRandomPosition(Positions, Randomizer);
-			((Vector)Positions.elementAt(Position[ROW])).setElementAt("W", Position[COL]);
+			((Vector)Positions.elementAt(Position[ROW])).setElementAt("W?", Position[COL]);
 		}
 
 		int red = Integer.parseInt(Settings.elementAt(RED).toString());
 		for (int i = 0; i < red; i++) {
 			int Position[] = getRandomPosition(Positions, Randomizer);
-			((Vector)Positions.elementAt(Position[ROW])).setElementAt("R", Position[COL]);
+			((Vector)Positions.elementAt(Position[ROW])).setElementAt("R?", Position[COL]);
 		}
 
 		int yellow = Integer.parseInt(Settings.elementAt(YELLOW).toString());
 		for (int i = 0; i < yellow; i++) {
 			int Position[] = getRandomPosition(Positions, Randomizer);
-			((Vector)Positions.elementAt(Position[ROW])).setElementAt("Y", Position[COL]);
+			((Vector)Positions.elementAt(Position[ROW])).setElementAt("Y?", Position[COL]);
 		}
 		
 		Vector ColumnNames = new Vector();
-		for (int i = 1; i <= size; i++) {
+		for (int i = 0; i < size; i++) {
 			ColumnNames.addElement(String.valueOf(i));
 		}
 		
-		MigrationMatrix Matrix = new MigrationMatrix(this, Data, ColumnNames, Positions);
+		RulesBase Rules = new RulesBase(Positions);
+		Matrix = new MigrationMatrix(this, Data, ColumnNames, Positions, Rules);
 		ScrollPanel.getViewport().removeAll();
 		ScrollPanel.getViewport().add(Matrix.getTable());
 		ScrollPanel.validate();
@@ -941,19 +944,18 @@ public class Migration implements ActionListener {
 
 		Exit.setEnabled(true);
 		Reset.setEnabled(true);
+		Next.setEnabled(true);
 
-		if (currentPage > SETUP) {
-			SouthPanel.setVisible(true);
-			South.setBackground(Color.LIGHT_GRAY);
-			Back.setEnabled(true);
-			Next.setEnabled(false);
-		}
-		else {
+		if (currentPage == SETUP) {
 			SouthPanel.setVisible(false);
 			South.setBackground(UIManager.getColor("TableHeader.background"));
 			Back.setEnabled(false);
-			Next.setEnabled(true);
 			Next.grabFocus();
+		}
+		else {
+			SouthPanel.setVisible(true);
+			South.setBackground(Color.LIGHT_GRAY);
+			Back.setEnabled(true);
 		}
 		
 	} // end setActivity
@@ -1023,7 +1025,7 @@ public class Migration implements ActionListener {
 
 	
 	/**
-	 * Gibt den Namen des selktierten RadioButtons zurück.
+	 * Gibt den Namen des selektierten RadioButtons zurück.
 	 * @return String
 	 */
 	public String getSelection() {

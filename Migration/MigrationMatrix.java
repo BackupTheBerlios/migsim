@@ -1,6 +1,7 @@
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.util.*;
+
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.*;
@@ -11,23 +12,28 @@ import javax.swing.event.MouseInputAdapter;
 public class MigrationMatrix {
 	
 	private Migration Mig;
+	private RulesBase Rules;
 	private JTable Matrix;
 	private DefaultTableModel MatrixTableModel;
 	private JList RowHeader;
 	private Vector ColumnNames;
 	private Vector Positions;
 	private	Vector Data;
-
+	
 	
 	/**
 	 * Der Konstruktor erzeugt die Matrix.
 	 * @param NewMig
 	 * @param Data
 	 * @param ColumnNames
+	 * @param NewPositions
+	 * @param NewRules
 	 */		
-	public MigrationMatrix(Migration NewMig, Vector Data, Vector ColumnNames, Vector NewPositions)  {
+	public MigrationMatrix(Migration NewMig, Vector Data, Vector ColumnNames, 
+						   Vector NewPositions, RulesBase NewRules)  {
 		
 		Mig = NewMig;
+		Rules = NewRules;
 		Positions = NewPositions;
 		MatrixTableModel = new DefaultTableModel(Data, ColumnNames) {
 			public boolean isCellEditable(int row, int column) { 
@@ -72,7 +78,7 @@ public class MigrationMatrix {
 		// verhindert das Zell-Rendering bei Mausbewegungen
 		ToolTipManager.sharedInstance().unregisterComponent(Matrix); 
 		ToolTipManager.sharedInstance().unregisterComponent(Matrix.getTableHeader());
-		
+	
 	} // end MigrationMatrix (constructor)
 
 	
@@ -89,26 +95,29 @@ public class MigrationMatrix {
 
 
 	
+	/**
+	 * Setzt ein Element in die Matrix bzw. löscht es.
+	 */	
 	private void setElement() {
 		
 		int row = Matrix.getSelectedRow();
 		int col = Matrix.getSelectedColumn();
-		if (((Vector)Positions.elementAt(row)).elementAt(col).toString().equals("B") &&
+		if (((Vector)Positions.elementAt(row)).elementAt(col).toString().startsWith("B") &&
 			Mig.getSelection().equals("Black")) {
 			((Vector)Positions.elementAt(row)).setElementAt("", col);
 			Matrix.setValueAt("", row, col);
 		}
-		else if	(((Vector)Positions.elementAt(row)).elementAt(col).toString().equals("W") &&
+		else if	(((Vector)Positions.elementAt(row)).elementAt(col).toString().startsWith("W") &&
 			Mig.getSelection().equals("White")) {
 			((Vector)Positions.elementAt(row)).setElementAt("", col);
 			Matrix.setValueAt("", row, col);
 		}
-		else if	(((Vector)Positions.elementAt(row)).elementAt(col).toString().equals("R") &&
+		else if	(((Vector)Positions.elementAt(row)).elementAt(col).toString().startsWith("R") &&
 			Mig.getSelection().equals("Red")) {
 			((Vector)Positions.elementAt(row)).setElementAt("", col);
 			Matrix.setValueAt("", row, col);
 		}
-		else if	(((Vector)Positions.elementAt(row)).elementAt(col).toString().equals("Y") &&
+		else if	(((Vector)Positions.elementAt(row)).elementAt(col).toString().startsWith("Y") &&
 			Mig.getSelection().equals("Yellow")) {
 			((Vector)Positions.elementAt(row)).setElementAt("", col);
 			Matrix.setValueAt("", row, col);
@@ -117,16 +126,16 @@ public class MigrationMatrix {
 			int size = Positions.size();
 			if (Mig.getSumOfColoredFields() < size * size * 2 / 3) {
 				if (Mig.getSelection().equals("Black")) {
-					((Vector)Positions.elementAt(row)).setElementAt("B", col);
+					((Vector)Positions.elementAt(row)).setElementAt("B?", col);
 				}
 				else if (Mig.getSelection().equals("White")) {
-					((Vector)Positions.elementAt(row)).setElementAt("W", col);
+					((Vector)Positions.elementAt(row)).setElementAt("W?", col);
 				}
 				else if (Mig.getSelection().equals("Red")) {
-					((Vector)Positions.elementAt(row)).setElementAt("R", col);
+					((Vector)Positions.elementAt(row)).setElementAt("R?", col);
 				}
 				else if (Mig.getSelection().equals("Yellow")) {
-					((Vector)Positions.elementAt(row)).setElementAt("Y", col);
+					((Vector)Positions.elementAt(row)).setElementAt("Y?", col);
 				}
 				Matrix.setValueAt("\u25cf", row, col);
 			}
@@ -138,17 +147,79 @@ public class MigrationMatrix {
 				Mig.getScrollPanel().validate();
 			}
 		}
-
-			
-		
+	
 	} // end setElement
+	
+	
+	/**
+	 * Wechselt in die nächste Periode.
+	 */
+	public boolean changePeriod() {
+	
+		for (int row = 0; row < Positions.size(); row++) {
+			Vector PositionSet = (Vector)Positions.elementAt(row);
+			for (int col = 0; col < PositionSet.size(); col++) {
+				if (Rules.isMoveable(Positions.size(), row, col)) {
+					String Element = ((Vector)Positions.elementAt(row)).elementAt(col).toString();
+					int currentValue = Rules.evaluatePosition(Element, row, col, Positions.size());
+					setOptimalPosition(Element, row, col, currentValue);
+				}
+			}
+		}
+		return false;
+		
+	} // end changePeriod 
+
+
+	
+	/**
+	 * Bestimmt für das übergebene Element die optimalste angrenzende Position und setzt
+	 * es gegebenfalls auf die neue Position.
+	 * @param Element
+	 * @param row
+	 * @param col
+	 * @param currentPosition 
+	 */
+	private void setOptimalPosition(String Element, int row, int col, int value) {
+		
+		int optRow = row;
+		int optCol = col;
+		int optValue = value;
+		
+		for (int i = row - 1; i <= row + 1; i++) {
+			if (i >= 0 && i < Positions.size()) {
+				Vector PosSet = (Vector)Positions.elementAt(i);
+				for (int j = col - 1; j <= col + 1; j++) {
+					if (j >= 0 && j < Positions.size()) {
+						if (((Vector)Positions.elementAt(i)).elementAt(j).toString().equals("")) {
+							int newValue = Rules.evaluatePosition(Element, i, j, Positions.size());
+							if (optValue < newValue) {
+								optValue = newValue;
+								optRow = i;
+								optCol = j;
+								System.out.println("O-Werte(" + row + ";" + col + "#" + value + ")   N-Werte(" +optRow + ";" + optCol + "#" + optValue + ")");
+							}
+						}
+					}
+				} // end for(j)
+			}
+		} // end for(i)
+	
+		if (optValue != value) {
+			Element = Element.substring(0,1) + "#";
+			((Vector)Positions.elementAt(row)).setElementAt("", col);
+			((Vector)Positions.elementAt(optRow)).setElementAt(Element, optCol);
+		}
+		
+	} // end setOptimalPosition
+
 	
 	
 	
 	/**
 	 * Definiert das Aussehen der Spaltenköpfe.
 	 */
-	public class HeaderRenderer extends DefaultTableCellRenderer {
+	private class HeaderRenderer extends DefaultTableCellRenderer {
 
 		/**
 		 * Zentriert den Inhalt der Spaltenköpfe.
@@ -179,7 +250,6 @@ public class MigrationMatrix {
 			setForeground(UIManager.getColor("TableHeader.foreground"));
 			setBackground(UIManager.getColor("TableHeader.background"));
 			setFont(UIManager.getFont("TableHeader.font"));
-			//setRowHeight(RTable.getRowHeight());
 			return RComponent;
 		}
 			
@@ -190,20 +260,31 @@ public class MigrationMatrix {
 	/**
 	 *  Erweitert das TableModel um das ListModel, welches für die Zeilenköpfe benötigt wird.
 	 */
-	class TableListModel extends AbstractListModel {
-		JTable Table;
+	private class TableListModel extends AbstractListModel {
+		
+		private JTable Table;
 
 		public TableListModel(JTable Table) {
+			
 			this.Table = Table;
-		}
+			
+		} // end TableListModel (constructor)
 
+		
+		
 		public int getSize() {
+			
 			return Table.getRowCount();
-		}
+		
+		} // end getSize
 
+		
+		
 		public Object getElementAt(int index) {
-			return "" + (index + 1);
-		}
+			
+			return "" + (index);
+		
+		} // end getElementAt
 	
 	} // end class TableListModel
 
@@ -212,7 +293,7 @@ public class MigrationMatrix {
 	/**
 	 * Definiert das Aussehen der Zeilenköpfe und implementiert die Methode zum Setzen der Zellinhalte.
 	 **/
-	class RowHeaderRenderer extends JLabel implements ListCellRenderer {
+	private class RowHeaderRenderer extends JLabel implements ListCellRenderer {
 
 		public RowHeaderRenderer(JTable Table)	{
 			JTableHeader Header = Table.getTableHeader();
@@ -239,7 +320,8 @@ public class MigrationMatrix {
 				setText(Value.toString());
 			}
 			return this;
-		}
+		
+		} // end getListCellRendererComponent
 		
 	} // end class RowHeaderRenderer
 
@@ -247,7 +329,7 @@ public class MigrationMatrix {
 	/**
 	 * Definiert das Aussehen der einzelnen Zellen der Matrix.
 	 **/	
-	public class TableCellRenderer extends DefaultTableCellRenderer {
+	private class TableCellRenderer extends DefaultTableCellRenderer {
 		
 		/**
 		 * Zentriert den Inhalt der Zellen.
@@ -257,12 +339,12 @@ public class MigrationMatrix {
 			setHorizontalAlignment(CENTER);
 			setOpaque(true);
 
-		} // end TableCellRenderer
+		} // end TableCellRenderer (constructor)
 		
 		
 
 		/**
-		 * This method formats the table cells and returns them as component.
+		 * Diese Methode gibt die formatierten Zellen zurück.
 		 * @param RTable
 		 * @param Value
 		 * @param isSelected
@@ -279,19 +361,19 @@ public class MigrationMatrix {
 			setFont(new Font(FontName, Font.BOLD, 20));
 			setBackground(Color.LIGHT_GRAY);
 			
-			if (((Vector)Positions.elementAt(row)).elementAt(col).toString().equals("B")) {
+			if (((Vector)Positions.elementAt(row)).elementAt(col).toString().startsWith("B")) {
 				setForeground(Color.BLACK);
 				RTable.setValueAt("\u25cf", row, col);
 			}
-			if (((Vector)Positions.elementAt(row)).elementAt(col).toString().equals("W")) {
+			if (((Vector)Positions.elementAt(row)).elementAt(col).toString().startsWith("W")) {
 				setForeground(Color.WHITE);
 				RTable.setValueAt("\u25cf", row, col);
 			}
-			if (((Vector)Positions.elementAt(row)).elementAt(col).toString().equals("R")) {
+			if (((Vector)Positions.elementAt(row)).elementAt(col).toString().startsWith("R")) {
 				setForeground(Color.RED);
 				RTable.setValueAt("\u25cf", row, col);
 			}
-			if (((Vector)Positions.elementAt(row)).elementAt(col).toString().equals("Y")) {
+			if (((Vector)Positions.elementAt(row)).elementAt(col).toString().startsWith("Y")) {
 				setForeground(Color.YELLOW);
 				RTable.setValueAt("\u25cf", row, col);
 			}
