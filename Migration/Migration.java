@@ -23,11 +23,12 @@ public class Migration implements ActionListener {
 	private static final int COL = 1;
 
 	private JFrame Frame;	
-	private JButton Help;
+	private JLabel Period;
+	private JLabel EndPeriod;
 	private JButton Reset;
 	private JButton Exit;
 	private JButton Next;
-	private JButton Back;
+	private JButton Setup;
 	private JLabel Headline;
 	private JScrollPane ScrollPanel;
 	private JPanel PagePanel;
@@ -53,15 +54,7 @@ public class Migration implements ActionListener {
 	public Migration() {
 
 		Frame = new JFrame("Völkerwanderung");
-		Frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-		Frame.addWindowListener(new WindowAdapter() {
-			public void windowClosing(WindowEvent We) {
-				if (exitApplication()) {
-					System.exit(0); 
-				}
-			}
-		});
-
+		Frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		Frame.getContentPane().setLayout(new BorderLayout());
 		((BorderLayout)Frame.getContentPane().getLayout()).setVgap(10);
 		try {
@@ -93,15 +86,25 @@ public class Migration implements ActionListener {
 		GBC = new GridBagConstraints();
 		GBC.fill = GridBagConstraints.BOTH;
 		GBC.gridx = 0;
-		GBC.insets = getInsets(row, "Button");
 		
-		Help = new JButton("Hilfe");	// erzeugt den Help-Button
-		Help.setPreferredSize(new Dimension(90,25));
-		Help.addActionListener(this);
-		Help.setEnabled(false);
+		Period = new JLabel("1. Periode");	// erzeugt das Perioden-Label
+		Period.setHorizontalAlignment(JLabel.CENTER);
+		Period.setFont(new Font("Arial", Font.BOLD, 16));
+		Period.setForeground(new Color(0,0,100));
+		Period.setVisible(false);
 		GBC.gridy = row++;
-		Layout.setConstraints(Help, GBC);
-				
+		GBC.insets = getInsets(row, "Button");
+		Layout.setConstraints(Period, GBC);
+
+		EndPeriod = new JLabel("ENDZUSTAND!");	// erzeugt das Endzustand-Label
+		EndPeriod.setHorizontalAlignment(JLabel.CENTER);
+		EndPeriod.setFont(new Font("Arial", Font.BOLD, 14));
+		EndPeriod.setForeground(Color.RED);
+		EndPeriod.setVisible(false);
+		GBC.gridy = row++;
+		GBC.insets = getInsets(row, "Button");
+		Layout.setConstraints(EndPeriod, GBC);
+		
 		Exit = new JButton("Exit");		// erzeugt den Exit-Button
 		Exit.setPreferredSize(new Dimension(90,25));
 		Exit.addActionListener(this);
@@ -126,20 +129,21 @@ public class Migration implements ActionListener {
 		GBC.insets = getInsets(row, "ButtonBlock");
 		Layout.setConstraints(Next, GBC);
 
-		Back = new JButton("Zurück");	// erzeugt den Back-Button
-		Back.setPreferredSize(new Dimension(90,25));
-		Back.addActionListener(this);
-		Back.setEnabled(false);
+		Setup = new JButton("Setup");	// erzeugt den Setup-Button
+		Setup.setPreferredSize(new Dimension(90,25));
+		Setup.addActionListener(this);
+		Setup.setEnabled(false);
 		GBC.gridy = row++;
 		GBC.insets = getInsets(row, "Button");
-		Layout.setConstraints(Back, GBC);
+		Layout.setConstraints(Setup, GBC);
 
 		JPanel East = new JPanel(Layout);	// erzeugt den rechten Rand mit allen Buttons
-		East.add(Help);
+		East.add(Period);
+		East.add(EndPeriod);
 		East.add(Exit);
 		East.add(Reset);
 		East.add(Next);
-		East.add(Back);
+		East.add(Setup);
 		
 		SouthPanel = createSouthPanel();
 		SouthPanel.setVisible(false);
@@ -187,7 +191,7 @@ public class Migration implements ActionListener {
 			Settings.addElement("0");
 		}
 		error = false;
-		period = 0;
+		period = 1;
 		currentPage = SETUP;
 		showPage();
 		setActivity(); // setzt die Button-Aktivität
@@ -205,12 +209,11 @@ public class Migration implements ActionListener {
 		setWaitCursor();
 
 		if (AE.getSource() == Exit) {
-			if (exitApplication()) {
-				System.exit(0);
-			}
+			System.exit(0);
 		}
 
-		else if (AE.getSource() == Back) {
+		else if (AE.getSource() == Setup) {
+			resetPeriod();
 			ScrollPanel.getColumnHeader().removeAll();
 			ScrollPanel.getRowHeader().removeAll();
 			currentPage = SETUP;
@@ -249,8 +252,12 @@ public class Migration implements ActionListener {
 				}
 			}
 			else {
-				period++;
-				Matrix.changePeriod();
+				if (Matrix.changePeriod()) {                      // wenn true zurückgegeben wird
+					setPeriod();	
+				}
+				else {                                           // wenn false zurückgegeben wird
+					EndPeriod.setVisible(true);	
+				}
 			}
 		}
 		setDefaultCursor();
@@ -713,13 +720,18 @@ public class Migration implements ActionListener {
 			}
 			int value = getIntValue(Value, Item);
 			if (!error) {
-				int size = Integer.parseInt(((JTextField)getComponent("Matrix")).getText());
-				if (getSumOfColoredFields() <= (size * size * 2 / 3)) {
-					refreshInfoLabel(size);
-					return true;
+				if (value < 0) {
+					messageHandling("BelowMin", Item);
 				}
 				else {
-					messageHandling("MaxExceeded", String.valueOf(size * size));
+					int size = Integer.parseInt(((JTextField)getComponent("Matrix")).getText());
+					if (getSumOfColoredFields() <= (size * size * 2 / 3)) {
+						refreshInfoLabel(size);
+						return true;
+					}
+					else {
+						messageHandling("MaxExceeded", String.valueOf(size * size));
+					}
 				}
 			}
 			else {
@@ -863,7 +875,7 @@ public class Migration implements ActionListener {
 		else if (Cause.equalsIgnoreCase("MatrixSizeError1")) {
 			double tempValue = Math.sqrt(getSumOfColoredFields() * 3 / 2);
 			int value = (int)tempValue + 1;
-			Message = "Für die spezifizierte Anzahl farbiger Felder muss die Matricgröße mindestens " + value + " betragen!";
+			Message = "Für die spezifizierte Anzahl farbiger Felder muss die Matrixgröße mindestens " + value + " betragen!";
 			showMessage("Error", "Error", Message); 
 		}
 		else if (Cause.equalsIgnoreCase("MatrixSizeError2")) {
@@ -874,6 +886,10 @@ public class Migration implements ActionListener {
 			int value = Integer.parseInt(Item) * 2 / 3;
 			Message = "Die Anzahl der farbigen Felder darf nicht höher als " + value + " sein!\n";
 			Message += "Das entspricht 2/3 der Gesamtanzahl der Felder von " + Item + ".";
+			showMessage("Error", "Error", Message); 
+		}
+		else if (Cause.equalsIgnoreCase("BelowMin")) {
+			Message = "Der Wert im Feld \"" + Item + "\" muss größer als 0 sein!";
 			showMessage("Error", "Error", Message); 
 		}
 		return input;
@@ -942,7 +958,7 @@ public class Migration implements ActionListener {
 	
 	
 	/**
-	 * Gibt die aktuelle Peride zurück.    
+	 * Gibt die aktuelle Periode zurück.    
 	 * @return period
 	 **/
 	public int getPeriod() {
@@ -950,15 +966,29 @@ public class Migration implements ActionListener {
 		return period;
 
 	} // end getPeriod
+
+	
+	
+	/**
+	 * Erhöht die Periode um 1.    
+	 **/
+	public void setPeriod() {
+
+		period++;
+		Period.setText(period + ". Periode");
+
+	} // end setPeriod
 	
 	
 	
 	/**
-	 * Resetet die Periode.    
+	 * Setzt die Periode auf 1.    
 	 **/
 	public void resetPeriod() {
 
-		period = 0;;
+		period = 1;
+		Period.setText(period + ". Periode");
+		EndPeriod.setVisible(false);
 
 	} // end resetPeriod
 	
@@ -974,15 +1004,17 @@ public class Migration implements ActionListener {
 		Next.setEnabled(true);
 
 		if (currentPage == SETUP) {
+			Period.setVisible(false);
 			SouthPanel.setVisible(false);
 			South.setBackground(UIManager.getColor("TableHeader.background"));
-			Back.setEnabled(false);
+			Setup.setEnabled(false);
 			Next.grabFocus();
 		}
 		else {
 			SouthPanel.setVisible(true);
 			South.setBackground(Color.LIGHT_GRAY);
-			Back.setEnabled(true);
+			Setup.setEnabled(true);
+			Period.setVisible(true);
 		}
 		
 	} // end setActivity
@@ -1008,23 +1040,6 @@ public class Migration implements ActionListener {
 		Frame.setCursor(new Cursor(Cursor.WAIT_CURSOR));
 		
 	} // end setDefaultCursor
-
-	
-	
-	/**
-	 * Behandelt das Verhalten beim Schließen der Anwendung.
-	 * @return boolean
-	 */	
-	private boolean exitApplication() {
-		
-/*		int input = messageHandling("Exit", "");
-		if (input == 0) {
-			return true; 
-		}
-		return false;
-*/      return true; // nur zum schnellen Testen
-	
-	} // end exitApplication
 
 	
 	

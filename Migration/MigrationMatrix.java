@@ -14,10 +14,11 @@ public class MigrationMatrix {
 	private Migration Mig;
 	private RulesBase Rules;
 	private JTable Matrix;
-	private DefaultTableModel MatrixTableModel;
+	private DefaultTableModel MatrixTableModel;     // Klasse, die beschreibt wie die Tabelle aussehen soll, wie man darauf zugreifen kann etc.
 	private JList RowHeader;
 	private Vector Positions;
 	private	Vector Data;
+	private boolean moved;
 	
 	
 	/**
@@ -37,7 +38,7 @@ public class MigrationMatrix {
 		Data = NewData;
 		MatrixTableModel = new DefaultTableModel(Data, ColumnNames) {
 			public boolean isCellEditable(int row, int column) { 
-				return false;	// Schreibschutz für alle Zellen 
+				return false;	// Schreibschutz für alle Zellen, d.h. Zellen können nicht überschrieben werden
 			}
 		};
 
@@ -55,7 +56,7 @@ public class MigrationMatrix {
 		);
 		
 		TableColumn Column;
-		TableCellRenderer CellRenderer = new TableCellRenderer();
+		TableCellRenderer CellRenderer = new TableCellRenderer();   // Tabelle wird spaltenweise erzeugt
 		HeaderRenderer HRenderer = new HeaderRenderer();
 
 		for (int i = 0; i < ColumnNames.size(); i++ ) {
@@ -72,10 +73,10 @@ public class MigrationMatrix {
 		RowHeader.setBackground(UIManager.getColor("TableHeader.background"));
 		Mig.getScrollPanel().setRowHeaderView(RowHeader); // fügt die Zeilenköpfe hinzu
 		
-		Matrix.getTableHeader().setReorderingAllowed(false);
+		Matrix.getTableHeader().setReorderingAllowed(false);  // Verhindert das Verschieben der Headernamen 
 		Matrix.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		
-		// verhindert das Zell-Rendering bei Mausbewegungen
+		// verhindert das Zell-Rendering bei Mausbewegungen, bessere Performance
 		ToolTipManager.sharedInstance().unregisterComponent(Matrix); 
 		ToolTipManager.sharedInstance().unregisterComponent(Matrix.getTableHeader());
 	
@@ -104,7 +105,7 @@ public class MigrationMatrix {
 		int col = Matrix.getSelectedColumn();
 		if (((Vector)Positions.elementAt(row)).elementAt(col).toString().startsWith("B") &&
 			Mig.getSelection().equals("Black")) {
-			((Vector)Positions.elementAt(row)).setElementAt("", col);
+			((Vector)Positions.elementAt(row)).setElementAt("", col);    // wenn "B" usgewählt wurde, dann lösche diese Zelle
 			Matrix.setValueAt("", row, col);
 		}
 		else if	(((Vector)Positions.elementAt(row)).elementAt(col).toString().startsWith("W") &&
@@ -124,7 +125,15 @@ public class MigrationMatrix {
 		}
 		else {
 			int size = Positions.size();
-			if (Mig.getSumOfColoredFields() < size * size * 2 / 3) {
+			if (((Vector)Positions.elementAt(row)).elementAt(col).toString().equals("") &&
+				Mig.getSumOfColoredFields() >= size * size * 2 / 3) {
+				// Der TableCellRenderer muss gestoppt werden damit die Fehlermeldung lesbar wird
+				Mig.getScrollPanel().getViewport().removeAll();
+				Mig.messageHandling("MaxExceeded", String.valueOf(size * size));
+				Mig.getScrollPanel().getViewport().add(Matrix);
+				Mig.getScrollPanel().validate();
+			}
+			else {
 				if (Mig.getSelection().equals("Black")) {
 					((Vector)Positions.elementAt(row)).setElementAt("B?", col);
 				}
@@ -139,15 +148,8 @@ public class MigrationMatrix {
 				}
 				Matrix.setValueAt("\u25cf", row, col);
 			}
-			else {
-				// Der TableCellRenderer muss gestoppt werden damit die Fehlermeldung lesbar wird
-				Mig.getScrollPanel().getViewport().removeAll();
-				Mig.messageHandling("MaxExceeded", String.valueOf(size * size));
-				Mig.getScrollPanel().getViewport().add(Matrix);
-				Mig.getScrollPanel().validate();
-			}
 		}
-		Mig.resetPeriod();
+		Mig.resetPeriod();    //wenn was gesetzt wurde wird die Periode wieder auf 1 gesetzt
 	
 	} // end setElement
 	
@@ -157,13 +159,14 @@ public class MigrationMatrix {
 	 */
 	public boolean changePeriod() {
 	
-		System.out.println("\n" + Mig.getPeriod() + " Periode:");
-		System.out.println("----------");
+		moved = false;
+		System.out.println("\n" + Mig.getPeriod() + ". Periode:");
+		System.out.println("-----------");
 		for (int row = 0; row < Positions.size(); row++) {
 			Vector PositionSet = (Vector)Positions.elementAt(row);
 			for (int col = 0; col < PositionSet.size(); col++) {
-				if (Rules.isMoveable(Positions.size(), row, col)) {
-					String Element = ((Vector)Positions.elementAt(row)).elementAt(col).toString();
+				if (Rules.isMoveable(Positions.size(), row, col)) {   // wenn bewegbar, ordne es dem Element zu und bewerte es anschließend und setze es an die optimalste Position
+					String Element = PositionSet.elementAt(col).toString();
 					int currentValue = Rules.evaluatePosition(Element, row, col, Positions.size());
 					setOptimalPosition(Element, row, col, currentValue);
 				}
@@ -172,7 +175,7 @@ public class MigrationMatrix {
 		setMoveable(Positions.size());
 		// System.out.println(Positions);
 		// System.out.println(Data);
-		return false;
+		return moved;   // erkennt Bewegungen innerhalb einer Periode
 		
 	} // end changePeriod 
 
@@ -180,7 +183,7 @@ public class MigrationMatrix {
 	
 	/**
 	 * Bestimmt für das übergebene Element die optimalste angrenzende Position und setzt
-	 * es gegebenfalls auf die neue Position.
+	 * es gegebenenfalls auf die neue Position.
 	 * @param Element
 	 * @param row
 	 * @param col
@@ -194,10 +197,10 @@ public class MigrationMatrix {
 		
 		for (int i = row - 1; i <= row + 1; i++) {
 			if (i >= 0 && i < Positions.size()) {
-				Vector PosSet = (Vector)Positions.elementAt(i);
+				Vector PositionSet = (Vector)Positions.elementAt(i);
 				for (int j = col - 1; j <= col + 1; j++) {
 					if (j >= 0 && j < Positions.size()) {
-						if (((Vector)Positions.elementAt(i)).elementAt(j).toString().equals("")) {
+						if (PositionSet.elementAt(j).toString().equals("")) {
 							//-1, da das neue Feld das aktuelle Feld bei der Bewertung als gleichfarbigen Nachbarn hat
 							int newValue = Rules.evaluatePosition(Element, i, j, Positions.size()) - 1;
 							if (optValue < newValue) {
@@ -216,10 +219,11 @@ public class MigrationMatrix {
 		} // end for(i)
 	
 		if (optValue != value) {
+			moved = true;
 			Element = Element.substring(0,1) + "#";
-			((Vector)Data.elementAt(row)).setElementAt("", col);
 			((Vector)Positions.elementAt(row)).setElementAt("", col);
 			((Vector)Positions.elementAt(optRow)).setElementAt(Element, optCol);
+			Matrix.setValueAt("", row, col);
 			Matrix.setValueAt("\u25cf", optRow, optCol);
 		}
 		

@@ -19,13 +19,13 @@ public class RulesBase {
 	 * @param col
 	 * @return boolean
 	 */	
-	public boolean isMoveable(int size, int row, int col) {
+	public boolean isMoveable(int size, int row, int col) {         // size ist die Größe der Matrix
 		
 		if (((Vector)Positions.elementAt(row)).elementAt(col).toString().endsWith("#")) {
 			return false;
 		}
-		for (int i = row - 1; i < row + 2; i++) {
-			for (int j = col - 1; j < col + 2; j++) {
+		for (int i = row - 1; i <= row + 1; i++) {
+			for (int j = col - 1; j <= col + 1; j++) {
 				if (i >= 0 && j >= 0 && i < size && j < size) {
 					if (((Vector)Positions.elementAt(i)).elementAt(j).toString().equals("")) {
 						return true;
@@ -41,7 +41,7 @@ public class RulesBase {
 	
 	/**
 	 * Bewertet die übergebene Position für das spezifizierte Element und gibt den Wert zurück.
-	 * String Element
+	 * @param String Element
 	 * @param row
 	 * @param col
 	 * @param size
@@ -54,60 +54,60 @@ public class RulesBase {
 			if (i >= 0 && i < size) {
 				Vector PositionSet = (Vector)Positions.elementAt(i);
 				for (int j = col - 1; j <= col + 1; j++) {
-					if (j >= 0 && j < size && !(row == i && col == j)) {
+					if (j >= 0 && j < size && !(row == i && col == j)) {      // "!" damit die Zentralzelle nicht mitbewertet wird
 						if (Element.startsWith("B")) {
-							if (((Vector)Positions.elementAt(i)).elementAt(j).toString().startsWith("B")) {
+							if (PositionSet.elementAt(j).toString().startsWith("B")) {
 								value = value + 1;
 							}
-							else if (((Vector)Positions.elementAt(i)).elementAt(j).toString().startsWith("W")) {
+							else if (PositionSet.elementAt(j).toString().startsWith("W")) {
 								value = value - 1;
 							}
-							else if (((Vector)Positions.elementAt(i)).elementAt(j).toString().startsWith("R")) {
+							else if (PositionSet.elementAt(j).toString().startsWith("R")) {
 								value = value + 0;
 							}
-							else if (((Vector)Positions.elementAt(i)).elementAt(j).toString().startsWith("Y")) {
+							else if (PositionSet.elementAt(j).toString().startsWith("Y")) {
 								value = value + 1;
 							}
 						}
 						else if (Element.startsWith("W")) {
-							if (((Vector)Positions.elementAt(i)).elementAt(j).toString().startsWith("B")) {
+							if (PositionSet.elementAt(j).toString().startsWith("B")) {
 								value = value - 1;
 							}
-							else if (((Vector)Positions.elementAt(i)).elementAt(j).toString().startsWith("W")) {
+							else if (PositionSet.elementAt(j).toString().startsWith("W")) {
 								value = value + 1;
 							}
-							else if (((Vector)Positions.elementAt(i)).elementAt(j).toString().startsWith("R")) {
+							else if (PositionSet.elementAt(j).toString().startsWith("R")) {
 								value = value - 1;
 							}
-							else if (((Vector)Positions.elementAt(i)).elementAt(j).toString().startsWith("Y")) {
+							else if (PositionSet.elementAt(j).toString().startsWith("Y")) {
 								value = value + 1;
 							}
 						}
 						else if (Element.startsWith("R")) {
-							if (((Vector)Positions.elementAt(i)).elementAt(j).toString().startsWith("B")) {
+							if (PositionSet.elementAt(j).toString().startsWith("B")) {
 								value = value + 0;
 							}
-							else if (((Vector)Positions.elementAt(i)).elementAt(j).toString().startsWith("W")) {
+							else if (PositionSet.elementAt(j).toString().startsWith("W")) {
 								value = value - 1;
 							}
-							else if (((Vector)Positions.elementAt(i)).elementAt(j).toString().startsWith("R")) {
+							else if (PositionSet.elementAt(j).toString().startsWith("R")) {
 								value = value + 1;
 							}
-							else if (((Vector)Positions.elementAt(i)).elementAt(j).toString().startsWith("Y")) {
+							else if (PositionSet.elementAt(j).toString().startsWith("Y")) {
 								value = value + 0;
 							}
 						}
 						else if (Element.startsWith("Y")) {
-							if (((Vector)Positions.elementAt(i)).elementAt(j).toString().startsWith("B")) {
+							if (PositionSet.elementAt(j).toString().startsWith("B")) {
 								value = value - 1;
 							}
-							else if (((Vector)Positions.elementAt(i)).elementAt(j).toString().startsWith("W")) {
+							else if (PositionSet.elementAt(j).toString().startsWith("W")) {
 								value = value + 1;
 							}
-							else if (((Vector)Positions.elementAt(i)).elementAt(j).toString().startsWith("R")) {
+							else if (PositionSet.elementAt(j).toString().startsWith("R")) {
 								value = value + 0;
 							}
-							else if (((Vector)Positions.elementAt(i)).elementAt(j).toString().startsWith("Y")) {
+							else if (PositionSet.elementAt(j).toString().startsWith("Y")) {
 								value = value + 1;
 							}
 						}
@@ -117,7 +117,7 @@ public class RulesBase {
 		} // end for(i)
 		return value;
 		
-	} // evalueateCurrentPosition
+	} // evaluatePosition
 	
 		
 	
